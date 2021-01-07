@@ -55,5 +55,5 @@ pip install numpy
 
 - Create a database file from DB Browser For SQLite using the 'Table Creation.sql' file and name it 'puzzels.db' or any name you like, just don't forget to rename it in the Python code.
 
-- Change the number of puzzles that you want to store from the dataset and run the getPuzzles.py file and you
+- Change the number of puzzles that you want to store from the dataset and run the getPuzzles.py file
 
