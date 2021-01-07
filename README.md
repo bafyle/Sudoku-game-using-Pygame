@@ -11,8 +11,10 @@
 Simple Sudoku game created with Python and Pygame
 
 ## Technologies:
-- Python 3.7.2
-- Pygame 2.0.0
+- Python                3.7.2
+- Pygame                2.0.0
+- SQLite3               3.32.2
+- DB Browser for SQLite 3.12
 
 ## Running the game
 To run the game you need to install Pygame using pip:
