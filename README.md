@@ -14,6 +14,7 @@ Old Sudoku game
 9x9 Board with missing numbers and you have to figure out what these numbers are, no number appeares twice in row, column or 3x3 subregions of the board
 
 The game has 100 puzzle to play with and solving algorithm using backtracking 
+(keep in mind iam still working on the game, it's not ready and i didn't use the 100 puzzle yet)
 
 Thanks for https://www.kaggle.com/bryanpark/sudoku for providing a 1 million puzzle dataset with answers, i just used the first 100.
 
