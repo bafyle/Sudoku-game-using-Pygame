@@ -1,5 +1,5 @@
 # Sudoku Using Pygame
-
+Simple Sudoku game created with Python and Pygame
 
 ## Content:
 * [General Info](#general-info)
@@ -8,10 +8,12 @@
 * [Solving algorithm](#solving-algorithm)
 * [Puzzles](#puzzles)
 
-## General Info
-Simple Sudoku game created with Python and Pygame
+## General Info:
+Old Sudoku game
 
-The game comes with 100 puzzle (not used yet)
+9x9 Board with missing numbers and you have to figure out what these numbers are, no number appeares twice in row, column or 3x3 subregions of the board
+
+The game has 100 puzzle to play with and solving algorithm using backtracking 
 
 Thanks for https://www.kaggle.com/bryanpark/sudoku for providing a 1 million puzzle dataset with answers, i just used the first 100.
 
@@ -22,7 +24,7 @@ Thanks for https://www.kaggle.com/bryanpark/sudoku for providing a 1 million puz
 - SQLite3               3.32.2 (not required to run the game)
 - DB Browser for SQLite 3.12 (not required to run the game)
 
-## Running the game
+## Running the game:
 To run the game you need to install Pygame using pip:
 ~~~
 pip install pygame
@@ -33,11 +35,11 @@ python sudoku.py
 ~~~
 
 ## Solving algorithm:
-i used backtracking algorithm to solve the puzzle
+I used backtracking algorithm to solve the puzzle
 
-you can find the code in puzzleSolver.py file
+You can find the code in puzzleSolver.py file
 
-## Puzzles
+## Puzzles:
 The dataset is a .csv file. I used pandas library to get the puzzles and sqlite3 connector to store the puzzles into the database
 
 You can run the code for yourself by:
@@ -51,7 +53,7 @@ pip install numpy
 ~~~
 - Download the dataset from this link: https://www.kaggle.com/bryanpark/sudoku and extract the zip file (about 162MB)
 
-- Create a database file from DB Browser For SQLite and name it 'puzzels.db' or any name you like, just don't forget to rename it in the Python code
+- Create a database file from DB Browser For SQLite using the 'Table Creation.sql' file and name it 'puzzels.db' or any name you like, just don't forget to rename it in the Python code.
 
-- Change the number of puzzles that you want to store from the dataset and run the getPuzzles.py file and you good to go
+- Change the number of puzzles that you want to store from the dataset and run the getPuzzles.py file and you
 
