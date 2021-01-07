@@ -101,6 +101,7 @@ class CheckValidButton(Button):
                     if not self.solver.isValidNotInList((i, f), puzzle[i][f]):
                         return False
             return True
+
 class ResetPuzzleButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
@@ -182,7 +183,7 @@ def main():
 
     notificationString = ""
     showNotification = False
-    start_time = time.time()
+    notificationTimer = time.time()
     # main loop
     running = True
     while running:
@@ -213,6 +214,7 @@ def main():
                                 break
                         if breakPoint:
                             break
+
                 # if the user clicked in the area of of buttons
                 # call 'onClicked' method of the clicked button
                 elif pygame.mouse.get_pos() > (540, 0):
@@ -223,7 +225,7 @@ def main():
                         else:
                             notificationString = "Think again"
                         showNotification = True
-                        start_time = time.time()
+                        notificationTimer = time.time()
                         initializeBoard(puzzle, cells, win)
 
                     elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()):
@@ -278,8 +280,8 @@ def main():
         #drawing the notification
         if showNotification:
             game_font.render_to(win, (550, 100), notificationString, (255, 255, 255))
-            end_time = time.time()
-            if end_time - start_time >= 2:
+            notificationTimerEnd = time.time()
+            if notificationTimerEnd - notificationTimer >= 2:
                 showNotification = False
             
         game_font.render_to(win, (15, 560), "Made with love <3 by Andrew", (255, 82, 113))
