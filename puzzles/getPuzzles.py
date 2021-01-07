@@ -13,5 +13,4 @@ for i in range(count):
     cur.execute("INSERT INTO Answers VALUES(?, ?);", [i+1, data["solutions"][i]])
     connection.commit()
 
-
 connection.close()
