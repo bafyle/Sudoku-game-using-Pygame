@@ -1,11 +1,14 @@
 # Sudoku Using Pygame
 
-Simple Sudoku game created with Python and Pygame
+
 ## Content:
-* [General Info](#sudoku)
-* [Technology](#technology)
-* [Running the game](#run)
-* [Solving algorithm](#algo)
+* [General Info](#general-info)
+* [Technologies](#technologies)
+* [Running the game](#running-the-game)
+* [Solving algorithm](#solving-algorithm)
+
+## General Info
+Simple Sudoku game created with Python and Pygame
 
 ## Technologies:
 - Python 3.7.2
@@ -21,7 +24,7 @@ After the installation is complete you can run the game from:
 python sudoku.py
 ~~~
 
-## Sloving algorithm:
+## Solving algorithm:
 i used backtracking algorithm to solve the puzzle
 
 you can find the code in puzzleSolver.py file
