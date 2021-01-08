@@ -265,6 +265,9 @@ def main():
     renderString = "00:00"
     timer = 0
 
+    # if the user solved it then we stop the timer
+    solved = False
+
     # main loop
     running = True
     while running:
@@ -304,6 +307,7 @@ def main():
                     # check valid button
                     if buttons[0].rect.collidepoint(pygame.mouse.get_pos()) and buttons[0].Enable:
                         returnFromButton = buttons[0].onClicked(puzzle)
+                        solved = returnFromButton
                         if returnFromButton:
                             notificationString = "Your answer is correct!!"
                         else:
@@ -316,13 +320,15 @@ def main():
                         puzzle = buttons[3].onClicked(currentPuzzleIndex)
                         buttons[1].onClicked(puzzle)
                         cells = refreshBoard(cells, puzzle)
+                        buttons[2].Enable = False
+                        solved = True
 
                     # reset button
-                    elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()):
-
+                    elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()) and buttons[2].Enable:
                         puzzle = buttons[3].onClicked(currentPuzzleIndex)
                         originalPuzzle = buttons[3].onClicked(currentPuzzleIndex)
                         cells = initializeBoard(puzzle, win)
+                        solved = False
 
                     # next puzzle button
                     elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()):
@@ -335,6 +341,8 @@ def main():
                         cells = initializeBoard(puzzle, win)
                         timer = 0
                         renderString = "00:00"
+                        buttons[2].Enable = True
+                        solved = False
 
             # if the user pressed a key on the keyboard
             # and that key is 1 -> 9 numpad key and the selected cell
@@ -383,7 +391,7 @@ def main():
         
         #drawing timer
         timerEnd = time.time()
-        if timerEnd - timerStart >= 1:
+        if timerEnd - timerStart >= 1 and solved == False:
             timer += 1
             renderString = getTimeInString(timer)
             timerStart = time.time()
