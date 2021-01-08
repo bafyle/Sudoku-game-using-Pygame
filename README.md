@@ -1,5 +1,5 @@
 # Sudoku Using Pygame
-Simple Sudoku game created with Python and Pygame
+Simple Sudoku game and solver created with Python and Pygame
 
 ## Content:
 * [General Info](#general-info)
@@ -22,7 +22,7 @@ Thanks for https://www.kaggle.com/bryanpark/sudoku for providing a 1 million puz
 - Python                3.7.2
 - Pygame                2.0.0
 - Pandas                1.1.5 (not required to run the game)
-- SQLite3               3.32.2 (not required to run the game)
+- SQLite3               3.32.2
 - DB Browser for SQLite 3.12 (not required to run the game)
 
 ## Running the game:
@@ -41,7 +41,8 @@ I used backtracking algorithm to solve the puzzle
 You can find the code in puzzleSolver.py file
 
 ## Puzzles:
-The dataset is a .csv file. I used pandas library to get the puzzles and sqlite3 connector to store the puzzles into the database
+All puzzles are stored in a .csv file. pandas library were used to get the top 100 puzzle and sqlite3 connector to insert these puzzles to the dataset.
+
 
 You can run the code for yourself by:
 - installing pandas:
@@ -57,4 +58,6 @@ pip install numpy
 - Create a database file from DB Browser For SQLite using the 'Table Creation.sql' file and name it 'puzzels.db' or any name you like, just don't forget to rename it in the Python code.
 
 - Change the number of puzzles that you want to store from the dataset and run the getPuzzles.py file
+
+- You can use any puzzles dataset you want, just make sure when you insert these puzzles to the database, the empty places should be zero to avoid any errors.
 
