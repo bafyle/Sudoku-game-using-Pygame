@@ -8,7 +8,7 @@ try:
 except ImportError:
     print("Pygame is not installed, open command prompt and install the pygame\n"
           "library from \'pip install pygame\' and try again\n"
-          "And make these files are in the same directory: puzzle.txt, puzzleSolver.py")
+          "And make sure these files are in the same directory: puzzleSolver.py, puzzles folder")
     quit(1)
 
 # cell class wich is a rectangle with some attributes
@@ -61,12 +61,14 @@ class Button(object):
     def onClicked(self, puzzle: list):
         pass
     
+    # drawing the cell rectangle
     def drawButton(self):
         if not self.Enable:
             self.color = self.DISABLED_COLOR
         pygame.draw.rect(self.win, self.color, self.rect)
         
     
+    # drawing the text on the button
     def drawText(self, game_font: pygame.freetype.Font):
         padding = self.attributes[2] // 2
         padding -= len(self.text) * 4.5
@@ -74,20 +76,23 @@ class Button(object):
         game_font.render_to(self.win, (self.attributes[0]+padding, self.attributes[1]+8),
                             self.text, (0, 0, 0))
     
+    # change the color of the cell if the mouse is hovering on the button
     def onMouseEnter(self):
         if self.Enable:
             self.color = self.MOUSE_ON_COLOR
     
+    # change the color back of the cell if the mouse was hovering on the button and leaved
     def onMouseExit(self):
         if self.Enable:
             self.color = self.NORMAL_COLOR
 
-# derived classes
+# derived classes from the button class
 class ShowAnswerButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
 
     def onClicked(self, puzzle: list) -> list:
+        # solve the puzzle
         if self.Enable:
             self.solver = Solver(puzzle)
             self.solver.solve()
@@ -97,6 +102,7 @@ class CheckValidButton(Button):
         super().__init__(text, attributes, win)
     
     def onClicked(self, puzzle: list) -> bool:
+        # return true if all cells have a valid number and false otherwise
         if self.Enable:
             self.solver = Solver(puzzle)
             for i in range(9):
@@ -108,6 +114,9 @@ class CheckValidButton(Button):
 class ResetPuzzleButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
+    
+    # we do not need to override the onClicked method because
+    # we can just reload the puzzle from the database
 
 class GetAnotherPuzzleButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
@@ -153,14 +162,15 @@ class GetAnotherPuzzleButton(Button):
         self.connection.close()
     
     def closeConnectionWithCommit(self):
+        # save all changes and close the database
         self.connection.commit()
         self.closeConnection()
+        # we didn't use this function since we only read from the database
 
-def initializeBoard(puzzleList: list, win: pygame.Surface):
+def initializeBoard(puzzleList: list, win: pygame.Surface) -> list:
     
-    # intialize the 'cellsList' varaible with cells if it's empty
-    # if it's not empty then we re-assign the new numbers from 'puzzleList'
-    # to each cell
+    # creating the 81 cell, each cell has
+    # the function retunrs a list of the created cells
     newCellsList = []
     x = 0
     y = 0
@@ -180,7 +190,7 @@ def initializeBoard(puzzleList: list, win: pygame.Surface):
     return newCellsList
 
 def refreshBoard(cellsList: list, puzzle: list) -> list:
-    # insert a number a cell and return the new cellsList
+    # insert the numbers of the puzzle to the cells and return the new cells
     for i in range(9):
         for j in range(9):
             number = puzzle[i][j]
@@ -235,6 +245,7 @@ def main():
     pygame.display.set_caption("Sudoku")
 
     # buttons list
+    # to be easier for drawing and changing the color
     buttons = [
         CheckValidButton("Check your answer", (550, 50, 200, 30), win),
         ShowAnswerButton("Show answer", (550, 150, 200, 30), win),
@@ -307,6 +318,8 @@ def main():
                     # check valid button
                     if buttons[0].rect.collidepoint(pygame.mouse.get_pos()) and buttons[0].Enable:
                         returnFromButton = buttons[0].onClicked(puzzle)
+
+                        # notify the user if the puzzle is valid or not
                         solved = returnFromButton
                         if returnFromButton:
                             notificationString = "Your answer is correct!!"
@@ -356,13 +369,16 @@ def main():
                             puzzle[r][c] = event.key + 1 - pygame.K_KP1
                             cells = refreshBoard(cells, puzzle)
 
-        
+        # change the color of the buttons if the mouse hovering
+        # on the buttons
         if pygame.mouse.get_pos() > (540, 0):
             for button in buttons:
                 if button.rect.collidepoint(pygame.mouse.get_pos()):
                     button.onMouseEnter()
                 else:
                     button.onMouseExit()
+                    
+        # fill the screen with black to end the previous frame
         win.fill((0, 0, 0))
 
         #-----drawing section-----#
@@ -382,22 +398,22 @@ def main():
         # instruction to the user
         game_font.render_to(win, (15, 500), "Select a cell and enter a number", (255, 255, 255))
 
-        #drawing the notification
+        # show the notification for 2 seconds only
         if showNotification:
             game_font.render_to(win, (550, 100), notificationString, (255, 255, 255))
             notificationTimerEnd = time.time()
             if notificationTimerEnd - notificationTimer >= 2:
                 showNotification = False
         
-        #drawing timer
+        #drawing timer text
         timerEnd = time.time()
         if timerEnd - timerStart >= 1 and solved == False:
             timer += 1
             renderString = getTimeInString(timer)
             timerStart = time.time()
-
         game_font.render_to(win, (500, 450), renderString, (255, 255, 255))
 
+        # drawing my name :D
         game_font.render_to(win, (15, 560), "Made with love <3 by Andrew", (255, 82, 113))
         game_font.size = 36
 
