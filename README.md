@@ -11,10 +11,10 @@ Simple Sudoku game created with Python and Pygame
 ## General Info:
 Old Sudoku game
 
-9x9 Board with missing numbers and you have to figure out what these numbers are, no number appeares twice in row, column or 3x3 subregions of the board
+9x9 Board with missing numbers and you have to figure out what these numbers are, no number appears twice in row, column or 3x3 subregions of the board
 
 The game has 100 puzzle to play with and solving algorithm using backtracking 
-(keep in mind iam still working on the game, it's not ready and i didn't use the 100 puzzle yet)
+(keep in mind that the game is semi-working, iam still working on it while learning)
 
 Thanks for https://www.kaggle.com/bryanpark/sudoku for providing a 1 million puzzle dataset with answers, i just used the first 100.
 

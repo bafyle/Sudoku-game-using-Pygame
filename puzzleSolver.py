@@ -39,34 +39,26 @@ class Solver(object):
         # if the guess doesn't exist in the row, column or the 3x3 square, then return True
         return True
     
-    def isValidNotInList(self, index: tuple, guess: int) -> bool:
+    def isValidOnce(self, index: tuple, guess: int) -> bool:
 
-        # returning a True if the guess is in a correct place and False otherwise
-        # we compare 'guess' with it's row, column and 3x3 square
-        # first: check if the guess is already exist in its row
+        # same as 'isValid()' but this function checks if the number doesn't appear more than one
+        # and it's used to validate a full sudoku board with no empty cells
         row = index[0]
         col = index[1]
         for i, value in enumerate(self.puzzle[row]):
             if guess == value and i != col:
                 return False
         
-        # second: check if the guess is already exist in its column
-        # we neet to get the values of that column first to compare with
+        
         thisColumnValues = [self.puzzle[i][col] for i in range(9)]
         for i, value in enumerate(thisColumnValues):
             if guess == value and i != row:
                 return False
         
-        # third: check if the guess exists in the 3x3 square
-        # 1- find what square we try search in by using the floor division operator
-        # which will give us the standard division results
-        # but floored to the nearest positive real number
-        # example: 9/6 = 1.5 -> floor(1.5) = 1
+       
         r = (row // 3) * 3
         c = (col // 3) * 3
         
-        # 2- we muliply the result by 3 to get the index of top left cell in that square
-        # and we search in that square if the guess is already exists
         g = 0
         for i in range(r, r+3):
             for j in range(c, c+3):
@@ -74,8 +66,6 @@ class Solver(object):
                     if g != 0:
                         return False
                     g += 1
-
-        # if the guess doesn't exist in the row, column or the 3x3 square, then return True
         return True
 
     # get the all the empty cells indexes
