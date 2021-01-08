@@ -177,29 +177,47 @@ def initializeBoard(puzzleList: list, win: pygame.Surface):
         y += 51
         x = 0
         newCellsList.append(innerList)
-    # else:
-    #     for i in range(9):
-    #         for j in range(9):
-    #             number = puzzleList[i][j]
-    #             cellsList[i][j].number = number
     return newCellsList
 
 def refreshBoard(cellsList: list, puzzle: list) -> list:
+    # insert a number a cell and return the new cellsList
     for i in range(9):
         for j in range(9):
             number = puzzle[i][j]
             cellsList[i][j].number = number
     return cellsList
 
+
 def isFull(puzzle: list) -> bool:
+    # check if the the puzzle is full
     for i in range(9):
         for j in range(9):
             if puzzle[i][j] == 0:
                 return False
     return True
 
+
+def getTimeInString(seconds: int) -> str:
+    # this function takes a number of seconds and convert it
+    # 00:00 foramt
+    minute = seconds // 60
+    seconds -= minute*60
+    
+    second = seconds
+    if minute < 10:
+        returnString = "0" + str(minute)
+    else:
+        returnString = str(minute)
+    if second < 10:
+        returnString += ":0" + str(second)
+    else:
+        returnString += ":" + str(second)
+
+    return returnString
+
 def draw(win: pygame.Surface, game_font: pygame.freetype.Font) -> None:
     pass
+
 
 def main():
     pygame.init()
@@ -224,23 +242,28 @@ def main():
         GetAnotherPuzzleButton("Next puzzle", (550, 350, 200, 30), win),
     ]
 
-
     # load a random puzzle
     currentPuzzleIndex = random.randint(1, 100)
     originalPuzzle = buttons[3].onClicked(currentPuzzleIndex)
-    puzzle = list(originalPuzzle)
+    puzzle = buttons[3].onClicked(currentPuzzleIndex)
 
     # initialize the cells
     cells = []
     cells = initializeBoard(puzzle, win)
 
+    # storing the selected cell to change its color
     selectedCell = None
     indexOfCurrentCell = tuple()
 
+    # a notification system to tell user if his answer is right or wrong
     notificationString = ""
     showNotification = False
     notificationTimer = time.time()
 
+    # a timer to tell user how much time he spent
+    timerStart = time.time()
+    renderString = "00:00"
+    timer = 0
 
     # main loop
     running = True
@@ -290,14 +313,15 @@ def main():
 
                     # show answer button
                     elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()):
-                        puzzle = list(originalPuzzle)
+                        puzzle = buttons[3].onClicked(currentPuzzleIndex)
                         buttons[1].onClicked(puzzle)
                         cells = refreshBoard(cells, puzzle)
 
                     # reset button
                     elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()):
+
                         puzzle = buttons[3].onClicked(currentPuzzleIndex)
-                        originalPuzzle = list(puzzle)
+                        originalPuzzle = buttons[3].onClicked(currentPuzzleIndex)
                         cells = initializeBoard(puzzle, win)
 
                     # next puzzle button
@@ -309,6 +333,8 @@ def main():
                         originalPuzzle = buttons[3].onClicked(newIndex)
                         puzzle = list(originalPuzzle)
                         cells = initializeBoard(puzzle, win)
+                        timer = 0
+                        renderString = "00:00"
 
             # if the user pressed a key on the keyboard
             # and that key is 1 -> 9 numpad key and the selected cell
@@ -321,10 +347,6 @@ def main():
                         if cells[r][c].empty:
                             puzzle[r][c] = event.key + 1 - pygame.K_KP1
                             cells = refreshBoard(cells, puzzle)
-                            if isFull(puzzle):
-                                buttons[0].Enable = True
-                            else:
-                                buttons[0].Enable = False
 
         
         if pygame.mouse.get_pos() > (540, 0):
@@ -358,7 +380,16 @@ def main():
             notificationTimerEnd = time.time()
             if notificationTimerEnd - notificationTimer >= 2:
                 showNotification = False
-            
+        
+        #drawing timer
+        timerEnd = time.time()
+        if timerEnd - timerStart >= 1:
+            timer += 1
+            renderString = getTimeInString(timer)
+            timerStart = time.time()
+
+        game_font.render_to(win, (500, 450), renderString, (255, 255, 255))
+
         game_font.render_to(win, (15, 560), "Made with love <3 by Andrew", (255, 82, 113))
         game_font.size = 36
 
@@ -366,6 +397,6 @@ def main():
         pygame.display.flip()
 
 
-# if we imported this file don't execute it
+# if this file is imported, don't execute
 if __name__ == "__main__":
     main()
