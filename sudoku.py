@@ -279,6 +279,14 @@ def main():
     # if the user solved it then we stop the timer
     solved = False
 
+    # start the background music
+    pygame.mixer.music.load("sounds/background.mp3")
+    pygame.mixer.music.play(-1)
+    pygame.mixer.music.set_volume(0.3)
+
+    # # load the correct sound effect
+    # correctSound = pygame.mixer.Sound("sounds/correct.mp3")
+    # correctSound.set_volume(0.5)
     # main loop
     running = True
     while running:
@@ -323,6 +331,7 @@ def main():
                         solved = returnFromButton
                         if returnFromButton:
                             notificationString = "Your answer is correct!!"
+                            # correctSound.play()
                         else:
                             notificationString = "Think again"
                         showNotification = True
