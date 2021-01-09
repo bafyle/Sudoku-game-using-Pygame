@@ -6,6 +6,7 @@ class Solver(object):
     def isValid(self, index: tuple, guess: int) -> bool:
 
         # returning a True if the guess is in a correct place and False otherwise
+        # this function is used to compare a number in the puzzle with empty cells
         # we compare 'guess' with it's row, column and 3x3 square
         # first: check if the guess is already exist in its row
         row = index[0]
@@ -69,7 +70,7 @@ class Solver(object):
         return True
 
     # get the all the empty cells indexes
-    def getEmptyCellsIndexes(self) -> None:
+    def getEmptyCellsIndexes(self) -> list:
         indexesOfEmptyCells = []
         for i in range(9):
             for j in range(9):
@@ -83,11 +84,7 @@ class Solver(object):
         # we need to save every index of every empty cell in a list
         # we save every index (x, y) in the list as a tuple
         # so 'indexesOfEmptyCells' is a list of tuples
-        indexesOfEmptyCells = []
-        for i in range(9):
-            for j in range(9):
-                if self.puzzle[i][j] == 0:
-                    indexesOfEmptyCells.append((i, j))
+        indexesOfEmptyCells = self.getEmptyCellsIndexes()
 
         if len(indexesOfEmptyCells) == 0:
             return False
