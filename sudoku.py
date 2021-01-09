@@ -11,7 +11,7 @@ except ImportError:
           "And make sure these files are in the same directory: puzzleSolver.py, puzzles folder")
     quit(1)
 
-# cell class wich is a rectangle with some attributes
+# cell class which is a rectangle with some attributes
 class cell(object):
     def __init__(self, number: int, attributes: tuple, win: pygame.Surface):
         self.number = number
@@ -167,45 +167,42 @@ class GetAnotherPuzzleButton(Button):
         self.closeConnection()
         # we didn't use this function since we only read from the database
 
-def initializeBoard(puzzleList: list, win: pygame.Surface) -> list:
-    
-    # creating the 81 cell, each cell has
-    # the function retunrs a list of the created cells
-    newCellsList = []
-    x = 0
-    y = 0
-    for i in range(9):
-        if i % 3 == 0:
-            y += 3
-        innerList = []
-        for j in range(9):
-            if j % 3 == 0:
-                x += 3
-            c = cell(puzzleList[i][j], (x+15, y+15, 50, 50), win)
-            innerList.append(c)
-            x += 51
-        y += 51
+# board class
+class Board(object):
+    def __init__(self, puzzle: list, win: pygame.Surface):
+        self.puzzle = puzzle
+        self.cells = []
+        self.solved = False
         x = 0
-        newCellsList.append(innerList)
-    return newCellsList
+        y = 0
+        for i in range(9):
+            if i % 3 == 0:
+                y += 3
+            innerList = []
+            for j in range(9):
+                if j % 3 == 0:
+                    x += 3
+                c = cell(self.puzzle[i][j], (x+15, y+15, 50, 50), win)
+                innerList.append(c)
+                x += 51
+            y += 51
+            x = 0
+            self.cells.append(innerList)
+    
+    def refreshCells(self) -> list:
+        # insert the numbers of the puzzle to the cells and return the new cells
+        for i in range(9):
+            for j in range(9):
+                number = self.puzzle[i][j]
+                self.cells[i][j].number = number
 
-def refreshBoard(cellsList: list, puzzle: list) -> list:
-    # insert the numbers of the puzzle to the cells and return the new cells
-    for i in range(9):
-        for j in range(9):
-            number = puzzle[i][j]
-            cellsList[i][j].number = number
-    return cellsList
-
-
-def isFull(puzzle: list) -> bool:
-    # check if the the puzzle is full
-    for i in range(9):
-        for j in range(9):
-            if puzzle[i][j] == 0:
-                return False
-    return True
-
+    def isFull(self) -> bool:
+        # check if the the puzzle is full
+        for i in range(9):
+            for j in range(9):
+                if puzzle[i][j] == 0:
+                    return False
+        return 
 
 def getTimeInString(seconds: int) -> str:
     # this function takes a number of seconds and convert it
@@ -255,12 +252,10 @@ def main():
 
     # load a random puzzle
     currentPuzzleIndex = random.randint(1, 100)
-    originalPuzzle = buttons[3].onClicked(currentPuzzleIndex)
     puzzle = buttons[3].onClicked(currentPuzzleIndex)
 
     # initialize the cells
-    cells = []
-    cells = initializeBoard(puzzle, win)
+    board = Board(puzzle, win)
 
     # storing the selected cell to change its color
     selectedCell = None
@@ -275,9 +270,6 @@ def main():
     timerStart = time.time()
     renderString = "00:00"
     timer = 0
-
-    # if the user solved it then we stop the timer
-    solved = False
 
     # start the background music
     pygame.mixer.music.load("sounds/background.mp3")
@@ -305,10 +297,10 @@ def main():
             # and store its row and column number
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.mouse.get_pos() > (14, 14) and pygame.mouse.get_pos() <= (484, 484):
-                    for i, row in enumerate(cells):
+                    for i, row in enumerate(board.cells):
                         breakPoint = False
                         for j, cell in enumerate(row):
-                            if cell.rect.collidepoint(pygame.mouse.get_pos()):
+                            if cell.rect.collidepoint(pygame.mouse.get_pos()) and cell.empty:
                                 cell.select()
                                 indexOfCurrentCell = (i, j)
                                 if selectedCell is not None:
@@ -328,7 +320,7 @@ def main():
                         returnFromButton = buttons[0].onClicked(puzzle)
 
                         # notify the user if the puzzle is valid or not
-                        solved = returnFromButton
+                        board.solved = returnFromButton
                         if returnFromButton:
                             notificationString = "Your answer is correct!!"
                             # correctSound.play()
@@ -341,16 +333,15 @@ def main():
                     elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()):
                         puzzle = buttons[3].onClicked(currentPuzzleIndex)
                         buttons[1].onClicked(puzzle)
-                        cells = refreshBoard(cells, puzzle)
+                        board.puzzle = puzzle
+                        board.refreshCells()
                         buttons[2].Enable = False
-                        solved = True
+                        board.solved = True
 
                     # reset button
                     elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()) and buttons[2].Enable:
                         puzzle = buttons[3].onClicked(currentPuzzleIndex)
-                        originalPuzzle = buttons[3].onClicked(currentPuzzleIndex)
-                        cells = initializeBoard(puzzle, win)
-                        solved = False
+                        board = Board(puzzle, win)
 
                     # next puzzle button
                     elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()):
@@ -358,13 +349,13 @@ def main():
                         while newIndex == currentPuzzleIndex:
                             newIndex = random.randint(1, 100)
                         currentPuzzleIndex = newIndex
-                        originalPuzzle = buttons[3].onClicked(newIndex)
-                        puzzle = list(originalPuzzle)
-                        cells = initializeBoard(puzzle, win)
+                        puzzle = buttons[3].onClicked(currentPuzzleIndex)
+                        board = Board(puzzle, win)
                         timer = 0
                         renderString = "00:00"
                         buttons[2].Enable = True
-                        solved = False
+                        selectedCell = None
+                        indexOfCurrentCell = ()
 
             # if the user pressed a key on the keyboard
             # and that key is 1 -> 9 numpad key and the selected cell
@@ -374,9 +365,9 @@ def main():
                     if indexOfCurrentCell != ():
                         r = indexOfCurrentCell[0]
                         c = indexOfCurrentCell[1]
-                        if cells[r][c].empty:
+                        if board.cells[r][c].empty:
                             puzzle[r][c] = event.key + 1 - pygame.K_KP1
-                            cells = refreshBoard(cells, puzzle)
+                            board.refreshCells()
 
         # change the color of the buttons if the mouse hovering
         # on the buttons
@@ -393,7 +384,7 @@ def main():
         #-----drawing section-----#
 
         #drawing cells
-        for cell in cells:
+        for cell in board.cells:
             for c in cell:
                 c.drawRect()
                 c.drawText(game_font)
@@ -416,7 +407,7 @@ def main():
         
         #drawing timer text
         timerEnd = time.time()
-        if timerEnd - timerStart >= 1 and solved == False:
+        if timerEnd - timerStart >= 1 and board.solved == False:
             timer += 1
             renderString = getTimeInString(timer)
             timerStart = time.time()
@@ -429,6 +420,7 @@ def main():
         #update the screen
         pygame.display.flip()
 
+    quit(0)
 
 # if this file is imported, don't execute
 if __name__ == "__main__":
