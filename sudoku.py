@@ -6,9 +6,10 @@ try:
     import sqlite3
     from puzzleSolver import Solver
 except ImportError:
-    print("Pygame is not installed, open command prompt and install the pygame\n"
-          "library from \'pip install pygame\' and try again\n"
-          "And make sure these files are in the same directory: puzzleSolver.py, puzzles folder")
+    print("pygame is not installed, open command prompt or the terminal "
+          "and install the pygame library from \'pip install pygame\' and try again\n"
+          "And make sure these files are in the same directory: "
+          "puzzleSolver.py file, puzzles folder and fonts folder")
     quit(1)
 
 # cell class which is a rectangle with some attributes
@@ -173,6 +174,8 @@ class Board(object):
         self.puzzle = puzzle
         self.cells = []
         self.solved = False
+        self.selectedCell = None
+        self.indexOfSelectedCell = ()
         x = 0
         y = 0
         for i in range(9):
@@ -202,11 +205,13 @@ class Board(object):
             for j in range(9):
                 if puzzle[i][j] == 0:
                     return False
-        return 
+        return True
 
 def getTimeInString(seconds: int) -> str:
-    # this function takes a number of seconds and convert it
-    # 00:00 foramt
+    """ 
+    this function takes a number of seconds and convert it
+    mm:ss foramt
+    """
     minute = seconds // 60
     seconds -= minute*60
     
@@ -257,10 +262,6 @@ def main():
     # initialize the cells
     board = Board(puzzle, win)
 
-    # storing the selected cell to change its color
-    selectedCell = None
-    indexOfCurrentCell = tuple()
-
     # a notification system to tell user if his answer is right or wrong
     notificationString = ""
     showNotification = False
@@ -302,10 +303,10 @@ def main():
                         for j, cell in enumerate(row):
                             if cell.rect.collidepoint(pygame.mouse.get_pos()) and cell.empty:
                                 cell.select()
-                                indexOfCurrentCell = (i, j)
-                                if selectedCell is not None:
-                                    selectedCell.select()
-                                selectedCell = cell
+                                board.indexOfSelectedCell = (i, j)
+                                if board.selectedCell is not None:
+                                    board.selectedCell.select()
+                                board.selectedCell = cell
                                 breakPoint = True
                                 break
                         if breakPoint:
@@ -342,6 +343,8 @@ def main():
                     elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()) and buttons[2].Enable:
                         puzzle = buttons[3].onClicked(currentPuzzleIndex)
                         board = Board(puzzle, win)
+                        board.indexOfSelectedCell = ()
+                        board.selectedCell = None
 
                     # next puzzle button
                     elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()):
@@ -354,21 +357,43 @@ def main():
                         timer = 0
                         renderString = "00:00"
                         buttons[2].Enable = True
-                        selectedCell = None
-                        indexOfCurrentCell = ()
+                        board.selectedCell = None
+                        board.indexOfSelectedCell = ()
 
             # if the user pressed a key on the keyboard
-            # and that key is 1 -> 9 numpad key and the selected cell
-            # is empty, then assign the number he pressed to that cell
             elif event.type == pygame.KEYDOWN:
+                # and that key is a numpad key and the selected cell
+                # is empty, then assign the number he pressed to that cell
                 if pygame.K_KP1 <= event.key <= pygame.K_KP9:
-                    if indexOfCurrentCell != ():
-                        r = indexOfCurrentCell[0]
-                        c = indexOfCurrentCell[1]
+                    if board.indexOfSelectedCell != ():
+                        r = board.indexOfSelectedCell[0]
+                        c = board.indexOfSelectedCell[1]
                         if board.cells[r][c].empty:
                             puzzle[r][c] = event.key + 1 - pygame.K_KP1
                             board.refreshCells()
-
+                # else if that key was an arrow key
+                # then navigate in the cells by making the selected cell be
+                # whatever the user selected with the arrows
+                elif pygame.K_UP >= event.key >= pygame.K_RIGHT:
+                    if board.selectedCell is not None:
+                        if event.key == pygame.K_UP:
+                            new_row = (board.indexOfSelectedCell[0] - 1) % 9
+                            new_column = board.indexOfSelectedCell[1]
+                        elif event.key == pygame.K_DOWN:
+                            new_row = (board.indexOfSelectedCell[0] + 1) % 9
+                            new_column = board.indexOfSelectedCell[1]
+                        elif event.key == pygame.K_LEFT:
+                            new_row = board.indexOfSelectedCell[0]
+                            new_column = (board.indexOfSelectedCell[1] - 1 ) % 9
+                        else:
+                            new_row = board.indexOfSelectedCell[0]
+                            new_column = (board.indexOfSelectedCell[1] + 1 ) % 9
+                        if board.cells[new_row][new_column].empty:
+                            board.selectedCell.select()
+                            board.indexOfSelectedCell = (new_row, new_column)
+                            board.selectedCell = board.cells[new_row][new_column]
+                            board.selectedCell.select()
+                        
         # change the color of the buttons if the mouse hovering
         # on the buttons
         if pygame.mouse.get_pos() > (540, 0):
