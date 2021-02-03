@@ -19,16 +19,18 @@ class cell(object):
         self.empty = number == 0
         self.attributes = attributes
         self.selected = False
-        self.color = (230, 240, 255)
-        self.rect = pygame.Rect(attributes[0], attributes[1],attributes[2],attributes[3])
+        self.NORMAL_COLOR = (230, 240, 255)
+        self.SELECTED_COLOR = (190, 215, 255)
+        self.color = self.NORMAL_COLOR
+        self.rect = pygame.Rect(attributes[0], attributes[1], attributes[2], attributes[3])
         self.win = win
 
     def select(self) -> None:
         self.selected = not self.selected
         if not self.selected:
-            self.color = (230, 240, 255)
+            self.color = self.NORMAL_COLOR
         else:
-            self.color = (190, 215, 255)
+            self.color = self.SELECTED_COLOR
     
     def drawText(self, game_font: pygame.freetype.Font) -> None:
         if not self.empty:
@@ -51,7 +53,7 @@ class Button(object):
         self.MOUSE_ON_COLOR = (190, 215, 255)
         self.DISABLED_COLOR = (117, 117, 117)
         self.Enable = True
-        self.rect = pygame.Rect(attributes[0], attributes[1],attributes[2],attributes[3])
+        self.rect = pygame.Rect(attributes[0], attributes[1], attributes[2], attributes[3])
         self.solver = Solver([])
         if self.Enable:
             self.color = self.NORMAL_COLOR
@@ -67,7 +69,6 @@ class Button(object):
         if not self.Enable:
             self.color = self.DISABLED_COLOR
         pygame.draw.rect(self.win, self.color, self.rect)
-        
     
     # drawing the text on the button
     def drawText(self, game_font: pygame.freetype.Font):
@@ -92,7 +93,7 @@ class ShowAnswerButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
 
-    def onClicked(self, puzzle: list) -> list:
+    def onClicked(self, puzzle: list) -> None:
         # solve the puzzle
         if self.Enable:
             self.solver = Solver(puzzle)
@@ -108,7 +109,7 @@ class CheckValidButton(Button):
             self.solver = Solver(puzzle)
             for i in range(9):
                 for f in range(9):
-                    if not self.solver.isValidOnce((i, f), puzzle[i][f]):
+                    if not self.solver.isThereOnce((i, f), puzzle[i][f]):
                         return False
             return True
 
@@ -133,31 +134,31 @@ class GetAnotherPuzzleButton(Button):
 
     # return the a new list full of the new puzzle
     def onClicked(self, puzzleIndex: int) -> list:
+        if self.Enable:
+            # get the puzzle that has 'puzzleIndex' index
+            # 'execute()' function returns an iterable object that contains the output of the select statement 
+            puzzleText = self.cursor.execute("SELECT quiz FROM Quizzes WHERE q_id = ?", [puzzleIndex])
 
-        # get the puzzle that has 'puzzleIndex' index
-        # 'execute()' function returns an iterable object that contains the output of the select statement 
-        puzzleText = self.cursor.execute("SELECT quiz FROM Quizzes WHERE q_id = ?", [puzzleIndex])
+            # since the q_id is a primary key in the database,
+            # there will be only one object in 'puzzleText'
+            # we get that object and reassign 'puzzleText\ with it
+            for i in puzzleText:
+                puzzleText = i
+            puzzleText = puzzleText[0]
 
-        # since the q_id is a primary key in the database,
-        # there will be only one object in 'puzzleText'
-        # we get that object and reassign 'puzzleText\ with it
-        for i in puzzleText:
-            puzzleText = i
-        puzzleText = puzzleText[0]
+            # the puzzle now in 'puzzleText' but it is a string
+            # we convert that string to a list of list of integers
+            newPuzzle = []
+            innerList = []
+            for i in range(81):
+                if i % 9 == 0 and i != 0:
+                    newPuzzle.append(innerList)
+                    innerList = []
+                innerList.append(int(puzzleText[i]))
+            newPuzzle.append(innerList)
 
-        # the puzzle now in 'puzzleText' but it is a string
-        # we convert that string to a list of list of integers
-        newPuzzle = []
-        innerList = []
-        for i in range(81):
-            if i % 9 == 0 and i != 0:
-                newPuzzle.append(innerList)
-                innerList = []
-            innerList.append(int(puzzleText[i]))
-        newPuzzle.append(innerList)
-
-        # return the new puzzle
-        return newPuzzle
+            # return the new puzzle
+            return newPuzzle
 
     def closeConnection(self):
         self.connection.close()
@@ -280,6 +281,10 @@ def main():
     # # load the correct sound effect
     # correctSound = pygame.mixer.Sound("sounds/correct.mp3")
     # correctSound.set_volume(0.5)
+
+    # a black background color to fill the screen every frame
+    BACKGROUND_COLOR = (0, 0, 0)
+
     # main loop
     running = True
     while running:
@@ -302,6 +307,8 @@ def main():
                         breakPoint = False
                         for j, cell in enumerate(row):
                             if cell.rect.collidepoint(pygame.mouse.get_pos()) and cell.empty:
+                                # if the mouse was clicked when clicking the mouse was colliding 
+                                # with any of the cells, then select that cell
                                 cell.select()
                                 board.indexOfSelectedCell = (i, j)
                                 if board.selectedCell is not None:
@@ -321,8 +328,8 @@ def main():
                         returnFromButton = buttons[0].onClicked(puzzle)
 
                         # notify the user if the puzzle is valid or not
-                        board.solved = returnFromButton
                         if returnFromButton:
+                            board.solved = returnFromButton
                             notificationString = "Your answer is correct!!"
                             # correctSound.play()
                         else:
@@ -331,7 +338,7 @@ def main():
                         notificationTimer = time.time()
 
                     # show answer button
-                    elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()):
+                    elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()) and buttons[1].Enable:
                         puzzle = buttons[3].onClicked(currentPuzzleIndex)
                         buttons[1].onClicked(puzzle)
                         board.puzzle = puzzle
@@ -347,30 +354,35 @@ def main():
                         board.selectedCell = None
 
                     # next puzzle button
-                    elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()):
+                    elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()) and buttons[3].Enable:
+                        # load a new random puzzle
                         newIndex = random.randint(1, 100)
                         while newIndex == currentPuzzleIndex:
                             newIndex = random.randint(1, 100)
                         currentPuzzleIndex = newIndex
                         puzzle = buttons[3].onClicked(currentPuzzleIndex)
+                        
+                        # create a new board with the new puzzle
                         board = Board(puzzle, win)
+
+                        # reset the timer
                         timer = 0
                         renderString = "00:00"
+                        timerStart = time.time()
+                        # enable the reset button
                         buttons[2].Enable = True
-                        board.selectedCell = None
-                        board.indexOfSelectedCell = ()
 
             # if the user pressed a key on the keyboard
             elif event.type == pygame.KEYDOWN:
-                # and that key is a numpad key and the selected cell
+                # and that key is a num-pad key and the selected cell
                 # is empty, then assign the number he pressed to that cell
                 if pygame.K_KP1 <= event.key <= pygame.K_KP9:
                     if board.indexOfSelectedCell != ():
-                        r = board.indexOfSelectedCell[0]
-                        c = board.indexOfSelectedCell[1]
+                        r, c = board.indexOfSelectedCell
                         if board.cells[r][c].empty:
                             puzzle[r][c] = event.key + 1 - pygame.K_KP1
                             board.refreshCells()
+                
                 # else if that key was an arrow key
                 # then navigate in the cells by making the selected cell be
                 # whatever the user selected with the arrows
@@ -394,8 +406,7 @@ def main():
                             board.selectedCell = board.cells[new_row][new_column]
                             board.selectedCell.select()
                         
-        # change the color of the buttons if the mouse hovering
-        # on the buttons
+        # change the color of any button of the mouse is standing over it
         if pygame.mouse.get_pos() > (540, 0):
             for button in buttons:
                 if button.rect.collidepoint(pygame.mouse.get_pos()):
@@ -404,15 +415,15 @@ def main():
                     button.onMouseExit()
                     
         # fill the screen with black to end the previous frame
-        win.fill((0, 0, 0))
+        win.fill(BACKGROUND_COLOR)
 
         #-----drawing section-----#
 
         #drawing cells
-        for cell in board.cells:
-            for c in cell:
-                c.drawRect()
-                c.drawText(game_font)
+        for rowOfCells in board.cells:
+            for cell in rowOfCells:
+                cell.drawRect()
+                cell.drawText(game_font)
         
         #drawing buttons and their texts
         game_font.size = 20
@@ -421,7 +432,8 @@ def main():
             button.drawText(game_font)
         
         # instruction to the user
-        game_font.render_to(win, (15, 500), "Select a cell and enter a number", (255, 255, 255))
+        game_font.render_to(win, (15, 500), "Select a square and enter a number", (255, 255, 255))
+        game_font.render_to(win, (15, 530), "You can use the arrow keys to navigate", (255, 255, 255))
 
         # show the notification for 2 seconds only
         if showNotification:

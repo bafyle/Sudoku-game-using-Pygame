@@ -5,18 +5,19 @@ class Solver(object):
 
     def isValid(self, index: tuple, guess: int) -> bool:
 
-        # returning a True if the guess is in a correct place and False otherwise
-        # this function is used to compare a number in the puzzle with empty cells
-        # we compare 'guess' with it's row, column and 3x3 square
+        """
+        Returning a True if the guess is in a correct place and False otherwise.
+        This function is used to compare the guess number with its row, column
+        and 3x3 square in the puzzle with empty cells
+        """
         # first: check if the guess is already exist in its row
-        row = index[0]
-        col = index[1]
+        row, col = index
         for value in self.puzzle[row]:
             if guess == value:
                 return False
         
         # second: check if the guess is already exist in its column
-        # we neet to get the values of that column first to compare with
+        # we need to get the values of that column first to compare with
         thisColumnValues = [self.puzzle[i][col] for i in range(9)]
         for value in thisColumnValues:
             if guess == value:
@@ -30,7 +31,7 @@ class Solver(object):
         r = (row // 3) * 3
         c = (col // 3) * 3
         
-        # 2- we muliply the result by 3 to get the index of top left cell in that square
+        # 2- we multiply the result by 3 to get the index of top left cell in that square
         # and we search in that square if the guess is already exists
         for i in range(r, r+3):
             for j in range(c, c+3):
@@ -40,12 +41,14 @@ class Solver(object):
         # if the guess doesn't exist in the row, column or the 3x3 square, then return True
         return True
     
-    def isValidOnce(self, index: tuple, guess: int) -> bool:
+    def isThereOnce(self, index: tuple, guess: int) -> bool:
 
-        # same as 'isValid()' but this function checks if the number doesn't appear more than one
-        # and it's used to validate a full sudoku board with no empty cells
-        row = index[0]
-        col = index[1]
+        """
+        Returning a True if the guess is in the row, column or 3x3 square once only
+        and false otherwise. This function is used to compare a guess number in
+        a full puzzle with no empty places
+        """
+        row, col = index
         for i, value in enumerate(self.puzzle[row]):
             if guess == value and i != col:
                 return False
@@ -70,23 +73,25 @@ class Solver(object):
         return True
 
     # get the all the empty cells indexes
-    def getEmptyCellsIndexes(self) -> list:
-        indexesOfEmptyCells = []
+    def getEmptyCellsIndices(self) -> list:
+        """
+        Return a list full of the indices of the empty places in the puzzle
+        """
+        indicesOfEmptyPlaces = []
         for i in range(9):
             for j in range(9):
                 if self.puzzle[i][j] == 0:
-                    indexesOfEmptyCells.append((i, j))
-        return indexesOfEmptyCells
+                    indicesOfEmptyPlaces.append((i, j))
+        return indicesOfEmptyPlaces
 
     def solve(self) -> bool:
+        """
+        This function is used to solve a sudoku puzzle using backtracking.
+        Returning True if the puzzle is solved and False if the puzzle is unsolvable.
+        """
+        indicesOfEmptyPlaces = self.getEmptyCellsIndices()
 
-        # Solve function that uses backtracking to find a solution to the sudoku puzzle
-        # we need to save every index of every empty cell in a list
-        # we save every index (x, y) in the list as a tuple
-        # so 'indexesOfEmptyCells' is a list of tuples
-        indexesOfEmptyCells = self.getEmptyCellsIndexes()
-
-        if len(indexesOfEmptyCells) == 0:
+        if len(indicesOfEmptyPlaces) == 0:
             return False
         # we will start from the first empty cell which will be in the index 0 in our list
         currentIndex = 0
@@ -95,8 +100,7 @@ class Solver(object):
         while True:
             
             # we first get the the row and the column of the empty cell
-            r = indexesOfEmptyCells[currentIndex][0]
-            c = indexesOfEmptyCells[currentIndex][1]
+            r, c = indicesOfEmptyPlaces[currentIndex]
 
             # let 'value' be equal to 0
             value = self.puzzle[r][c]
@@ -125,17 +129,17 @@ class Solver(object):
                 # set the cell to the guessed number and increase the 'currentIndex' by 1
                 # to make it points to the next empty cell
                 # and break from the loop to go the next cell 
-                if self.isValid(indexesOfEmptyCells[currentIndex], value):
+                if self.isValid(indicesOfEmptyPlaces[currentIndex], value):
                     self.puzzle[r][c] = value
                     currentIndex += 1
                     break
                 # notice that we check the the row, column and the 3x3 square
                 # before we set the cell with our guessed number
             
-            # if we are in the last empty cell and we guessed it correclty (We solved it)
+            # if we are in the last empty cell and we guessed it correctly (We solved it)
             # then 'currentIndex' will be bigger than the length of the list
             # we return True in this case
-            if currentIndex >= len(indexesOfEmptyCells):
+            if currentIndex >= len(indicesOfEmptyPlaces):
                 return True
             
             # if 'currentIndex' is equal to -1 then the puzzle doesn't have a solution
@@ -147,18 +151,32 @@ class Solver(object):
             # all the empty cell and none of guessed number is correct.
             # when we try every possible number from 1 to 9 and none of them
             # is valid for the first empty cell then 'currentIndex' will be equal to -1
-      
+
     @classmethod
     def getPuzzleFromFile(cls, fileName) -> list:
+        """
+        This function is used to get a puzzle from a file.
+        The file must contain a 9x9 sudoku puzzle, every row is seperated by a new line, 
+        every cell in the row of the puzzle must be seperated by a comma,
+        and there must be an empty line in the end of the file
+        """
         puzzle = []
-        puzzleFile = open("puzzle.txt", "r")
+        puzzleFile = open(fileName, "r")
         lines = puzzleFile.readlines()
         for line in lines:
             integers = line[:-1].split(', ')
-            readList = []
-            for i in integers:
-                readList.append(int(i))
-            puzzle.append(readList)
+            innerList = [int(i) for i in integers]
+            puzzle.append(innerList)
         puzzleFile.close()
         return puzzle
 
+# testing
+if __name__ == "__main__":
+    puzzle = Solver.getPuzzleFromFile("puzzle.txt")
+    solver = Solver(puzzle)
+    if solver.solve():
+        print("puzzle is solved")
+        print(puzzle, sep='\n')
+    else:
+        print("cant solve the puzzle")
+    quit(0)
