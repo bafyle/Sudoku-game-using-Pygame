@@ -5,12 +5,54 @@ try:
     import random
     import sqlite3
     from puzzleSolver import Solver
+    import copy
 except ImportError:
     print("pygame is not installed, open command prompt or the terminal "
           "and install the pygame library from \'pip install pygame\' and try again\n"
           "And make sure these files are in the same directory: "
           "puzzleSolver.py file, puzzles folder and fonts folder")
     quit(1)
+
+
+class database:
+    def __init__(self, dbpath: str):
+        self.databasePath = dbpath
+
+        # connect to the database using sqlite3 library
+        # And open the database in read-only mode because we will not insert anything
+        # to the database
+        self.connection = sqlite3.connect(f"file:{self.databasePath}?mode=ro", uri = True)
+
+        # initialize the query executioner
+        self.cursor = self.connection.cursor()
+    
+    def getPuzzleString(self, id: int) -> str:
+        """
+        This function reads a puzzle from the database and returns it in string foramt
+        """
+        # get the puzzle that has 'id' index
+        # 'execute()' function returns an iterable object that contains the output of the select statement 
+        puzzleText = self.cursor.execute("SELECT quiz FROM Quizzes WHERE q_id = ?", [id])
+
+        # since the q_id is a primary key in the database,
+        # there will be only one object in 'puzzleText'
+        # we get that object and reassign 'puzzleText\ with it
+        for i in puzzleText:
+            puzzleText = i
+        puzzleText = puzzleText[0]
+        
+        return puzzleText
+
+    def closeConnection(self):
+        """Closes the connection of the database without commiting any changes"""
+        self.connection.close()
+    
+    def closeConnectionWithCommit(self):
+        """Closes the connection of the database and commits any changes"""
+        self.connection.commit()
+        self.closeConnection()
+        # we didn't use this function since we only read from the database
+
 
 # cell class which is a rectangle with some attributes
 class cell(object):
@@ -43,7 +85,6 @@ class cell(object):
         pygame.draw.rect(self.win, self.color, self.rect)
 
 # base button class
-# to override onClicked method
 class Button(object):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         self.text = text
@@ -60,10 +101,6 @@ class Button(object):
         else:
             self.color = self.DISABLED_COLOR
 
-    # the function which derived classes will override
-    def onClicked(self, puzzle: list):
-        pass
-    
     # drawing the cell rectangle
     def drawButton(self):
         if not self.Enable:
@@ -92,18 +129,15 @@ class Button(object):
 class ShowAnswerButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
-
-    def onClicked(self, puzzle: list) -> None:
-        # solve the puzzle
-        if self.Enable:
-            self.solver = Solver(puzzle)
-            self.solver.solve()
+    
+    def buttonClick(self, *args, **kwargs):
+        return super().buttonClick(*args, **kwargs)
 
 class CheckValidButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
     
-    def onClicked(self, puzzle: list) -> bool:
+    def isPuzzleValid(self, puzzle: list) -> bool:
         # return true if all cells have a valid number and false otherwise
         if self.Enable:
             self.solver = Solver(puzzle)
@@ -116,38 +150,29 @@ class CheckValidButton(Button):
 class ResetPuzzleButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
-    
-    # we do not need to override the onClicked method because
-    # we can just reload the puzzle from the database
+
+
+class HintButton(Button):
+    def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
+        super().__init__(text, attributes, win)
+
 
 class GetAnotherPuzzleButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
         
-        # connect to the database using sqlite3 library
-        # And open the database in read-only mode because we will not insert anythin
-        # to the database
-        self.connection = sqlite3.connect('file:puzzles/puzzles.db?mode=ro', uri = True)
+        # create instance of database class with the path to the database
+        self.databaseConnection = database("puzzles/puzzles.db")
 
-        # initialize the query executioner
-        self.cursor = self.connection.cursor()
-
-    # return the a new list full of the new puzzle
-    def onClicked(self, puzzleIndex: int) -> list:
+    
+    def getPuzzle(self, puzzleIndex: int) -> list:
+        # return the a new list full of the new puzzle
         if self.Enable:
-            # get the puzzle that has 'puzzleIndex' index
-            # 'execute()' function returns an iterable object that contains the output of the select statement 
-            puzzleText = self.cursor.execute("SELECT quiz FROM Quizzes WHERE q_id = ?", [puzzleIndex])
 
-            # since the q_id is a primary key in the database,
-            # there will be only one object in 'puzzleText'
-            # we get that object and reassign 'puzzleText\ with it
-            for i in puzzleText:
-                puzzleText = i
-            puzzleText = puzzleText[0]
+            # get the puzzle from the database as string
+            puzzleText = self.databaseConnection.getPuzzleString(puzzleIndex)
 
-            # the puzzle now in 'puzzleText' but it is a string
-            # we convert that string to a list of list of integers
+            # convert that string to a list of list of integers
             newPuzzle = []
             innerList = []
             for i in range(81):
@@ -160,19 +185,11 @@ class GetAnotherPuzzleButton(Button):
             # return the new puzzle
             return newPuzzle
 
-    def closeConnection(self):
-        self.connection.close()
-    
-    def closeConnectionWithCommit(self):
-        # save all changes and close the database
-        self.connection.commit()
-        self.closeConnection()
-        # we didn't use this function since we only read from the database
-
 # board class
 class Board(object):
     def __init__(self, puzzle: list, win: pygame.Surface):
         self.puzzle = puzzle
+        self.OriginalPuzzle = copy.deepcopy(puzzle)
         self.cells = []
         self.solved = False
         self.selectedCell = None
@@ -192,6 +209,11 @@ class Board(object):
             y += 51
             x = 0
             self.cells.append(innerList)
+        
+        # solve the puzzle and store it in a new variable
+        self.solvedPuzzle = copy.deepcopy(puzzle)
+        solver = Solver(self.solvedPuzzle)
+        solver.solve()
     
     def refreshCells(self) -> list:
         # insert the numbers of the puzzle to the cells and return the new cells
@@ -207,6 +229,12 @@ class Board(object):
                 if puzzle[i][j] == 0:
                     return False
         return True
+    
+    def clearSelection(self) -> None:
+        if self.selectedCell.selected:
+            self.selectedCell.select()
+        self.selectedCell = None
+        self.indexOfSelectedCell = ()
 
 def getTimeInString(seconds: int) -> str:
     """ 
@@ -253,20 +281,27 @@ def main():
         CheckValidButton("Check your answer", (550, 50, 200, 30), win),
         ShowAnswerButton("Show answer", (550, 150, 200, 30), win),
         ResetPuzzleButton("Reset", (550, 250, 200, 30), win),
-        GetAnotherPuzzleButton("Next puzzle", (550, 350, 200, 30), win),
+        GetAnotherPuzzleButton("Next puzzle", (550, 450, 200, 30), win),
+        HintButton("Hint", (550, 350, 200, 30), win),
     ]
 
     # load a random puzzle
     currentPuzzleIndex = random.randint(1, 100)
-    puzzle = buttons[3].onClicked(currentPuzzleIndex)
+    puzzle = buttons[3].getPuzzle(currentPuzzleIndex)
 
     # initialize the cells
     board = Board(puzzle, win)
+    
+    # 3 hints only is allowed 
+    hints = 3
 
-    # a notification system to tell user if his answer is right or wrong
+    # notification system data 
     notificationString = ""
     showNotification = False
     notificationTimer = time.time()
+    NOTIFICATION_PLACE1 = (550, 100)
+    NOTIFICATION_PLACE2 = (550, 400)
+    notificationPlace = NOTIFICATION_PLACE1
 
     # a timer to tell user how much time he spent
     timerStart = time.time()
@@ -296,7 +331,7 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-                buttons[3].closeConnection()
+                buttons[3].databaseConnection.closeConnection()
             
             # if the user clicked while the mouse is near the puzzle cells
             # then search for the cell that he selected
@@ -325,42 +360,41 @@ def main():
 
                     # check valid button
                     if buttons[0].rect.collidepoint(pygame.mouse.get_pos()) and buttons[0].Enable:
-                        returnFromButton = buttons[0].onClicked(puzzle)
+                        validPuzzle = buttons[0].isPuzzleValid(puzzle)
 
                         # notify the user if the puzzle is valid or not
-                        if returnFromButton:
-                            board.solved = returnFromButton
+                        if validPuzzle:
+                            board.solved = True
                             notificationString = "Your answer is correct!!"
                             # correctSound.play()
                         else:
                             notificationString = "Think again"
+                        notificationPlace = NOTIFICATION_PLACE1
                         showNotification = True
                         notificationTimer = time.time()
 
                     # show answer button
                     elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()) and buttons[1].Enable:
-                        puzzle = buttons[3].onClicked(currentPuzzleIndex)
-                        buttons[1].onClicked(puzzle)
-                        board.puzzle = puzzle
+                        board.puzzle = copy.deepcopy(board.solvedPuzzle)
                         board.refreshCells()
                         buttons[2].Enable = False
                         board.solved = True
 
                     # reset button
                     elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()) and buttons[2].Enable:
-                        puzzle = buttons[3].onClicked(currentPuzzleIndex)
-                        board = Board(puzzle, win)
-                        board.indexOfSelectedCell = ()
-                        board.selectedCell = None
+                        board.puzzle = copy.deepcopy(board.OriginalPuzzle)
+                        board.refreshCells()
+                        board.clearSelection()
 
                     # next puzzle button
                     elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()) and buttons[3].Enable:
+
                         # load a new random puzzle
                         newIndex = random.randint(1, 100)
                         while newIndex == currentPuzzleIndex:
                             newIndex = random.randint(1, 100)
                         currentPuzzleIndex = newIndex
-                        puzzle = buttons[3].onClicked(currentPuzzleIndex)
+                        puzzle = buttons[3].getPuzzle(currentPuzzleIndex)
                         
                         # create a new board with the new puzzle
                         board = Board(puzzle, win)
@@ -371,6 +405,28 @@ def main():
                         timerStart = time.time()
                         # enable the reset button
                         buttons[2].Enable = True
+                    
+                    # hint button
+                    elif buttons[4].rect.collidepoint(pygame.mouse.get_pos()):
+                        if buttons[4].Enable:
+                            if board.selectedCell is not None:
+                                hints -= 1
+                                if hints <= 0:
+                                    buttons[4].Enable = False
+                                r, c = board.indexOfSelectedCell
+                                board.puzzle[r][c] = board.solvedPuzzle[r][c]
+                                board.refreshCells()
+                            else:
+                                notificationPlace = NOTIFICATION_PLACE2
+                                notificationString = "Select a cell"
+                                showNotification = True
+                                notificationTimer = time.time()
+                        else:
+                            notificationPlace = NOTIFICATION_PLACE2
+                            notificationString = "You are out of hints"
+                            showNotification = True
+                            notificationTimer = time.time()
+
 
             # if the user pressed a key on the keyboard
             elif event.type == pygame.KEYDOWN:
@@ -380,7 +436,7 @@ def main():
                     if board.indexOfSelectedCell != ():
                         r, c = board.indexOfSelectedCell
                         if board.cells[r][c].empty:
-                            puzzle[r][c] = event.key + 1 - pygame.K_KP1
+                            board.puzzle[r][c] = event.key + 1 - pygame.K_KP1
                             board.refreshCells()
                 
                 # else if that key was an arrow key
@@ -437,7 +493,7 @@ def main():
 
         # show the notification for 2 seconds only
         if showNotification:
-            game_font.render_to(win, (550, 100), notificationString, (255, 255, 255))
+            game_font.render_to(win, notificationPlace, notificationString, (255, 255, 255))
             notificationTimerEnd = time.time()
             if notificationTimerEnd - notificationTimer >= 2:
                 showNotification = False
@@ -448,7 +504,10 @@ def main():
             timer += 1
             renderString = getTimeInString(timer)
             timerStart = time.time()
-        game_font.render_to(win, (500, 450), renderString, (255, 255, 255))
+        game_font.render_to(win, (435, 500), renderString, (255, 255, 255))
+
+        #drawing hints text
+        game_font.render_to(win, (435, 530), f"hints: {hints}", (255, 255, 255))
 
         # drawing my name :D
         game_font.render_to(win, (15, 560), "Made with love <3 by Andrew", (255, 82, 113))
