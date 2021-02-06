@@ -14,7 +14,7 @@ except ImportError:
     quit(1)
 
 
-class database:
+class Database:
     def __init__(self, dbpath: str):
         self.databasePath = dbpath
 
@@ -56,6 +56,9 @@ class database:
 
 # cell class which is a rectangle with some attributes
 class cell(object):
+    """
+    A cell is a pygame rectangle that has string in the middle.
+    """
     def __init__(self, number: int, attributes: tuple, win: pygame.Surface):
         self.number = number
         self.empty = number == 0
@@ -68,6 +71,10 @@ class cell(object):
         self.win = win
 
     def select(self) -> None:
+        """
+        Select or deselect the cell, selecting a cell means change its color
+        to SELECTED_COLOR and deselecting a cell means return its color to NORMAL_COLOR
+        """
         self.selected = not self.selected
         if not self.selected:
             self.color = self.NORMAL_COLOR
@@ -75,6 +82,9 @@ class cell(object):
             self.color = self.SELECTED_COLOR
     
     def drawText(self, game_font: pygame.freetype.Font) -> None:
+        """
+        Drawing the cell text to the window, which is a single digit number 
+        """
         if not self.empty:
             game_font.render_to(self.win, (self.attributes[0]+18, self.attributes[1]+16),
                                 str(self.number), (0, 0, 0))
@@ -82,10 +92,17 @@ class cell(object):
             game_font.render_to(self.win, (self.attributes[0]+18, self.attributes[1]+16),
                                 str(self.number), (255, 0, 0))
     def drawRect(self):
+        """
+        Drawing the rectangle to the window
+        """
         pygame.draw.rect(self.win, self.color, self.rect)
 
-# base button class
 class Button(object):
+    """
+    a Button class is like the cell class, a pygame rectangle and a 
+    text in the middle of that rectangle but it has different calculation
+    for the position of the text
+    """
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         self.text = text
         self.attributes = attributes
@@ -114,14 +131,19 @@ class Button(object):
 
         game_font.render_to(self.win, (self.attributes[0]+padding, self.attributes[1]+8),
                             self.text, (0, 0, 0))
-    
-    # change the color of the cell if the mouse is hovering on the button
+
     def onMouseEnter(self):
+        """
+        change the color of the cell if the mouse is hovering on the button
+        """
         if self.Enable:
             self.color = self.MOUSE_ON_COLOR
     
-    # change the color back of the cell if the mouse was hovering on the button and leaved
+
     def onMouseExit(self):
+        """
+        Change the color back of the cell if the mouse was hovering on the button and leaved
+        """
         if self.Enable:
             self.color = self.NORMAL_COLOR
 
@@ -138,7 +160,14 @@ class CheckValidButton(Button):
         super().__init__(text, attributes, win)
     
     def isPuzzleValid(self, puzzle: list) -> bool:
-        # return true if all cells have a valid number and false otherwise
+        """
+        Return true if the puzzle is correct and false otherwise, by calling
+        the isThereOnce method in the Solver Class.
+        the puzzle may have more that one solution, by checking if every number is
+        not repeated more than once in its row, column and 3x3 square, we make sure that
+        this answer is correct rather than checking if the puzzle is equal to the solved puzzle
+        from the algorithm
+        """
         if self.Enable:
             self.solver = Solver(puzzle)
             for i in range(9):
@@ -162,11 +191,11 @@ class GetAnotherPuzzleButton(Button):
         super().__init__(text, attributes, win)
         
         # create instance of database class with the path to the database
-        self.databaseConnection = database("puzzles/puzzles.db")
+        self.databaseConnection = Database("puzzles/puzzles.db")
 
     
     def getPuzzle(self, puzzleIndex: int) -> list:
-        # return the a new list full of the new puzzle
+        """Get the text puzzle from the database adn convert it to a list"""
         if self.Enable:
 
             # get the puzzle from the database as string
@@ -187,9 +216,21 @@ class GetAnotherPuzzleButton(Button):
 
 # board class
 class Board(object):
+    """
+    This class is for managing the board: add a number to the puzzle , solve the puzzle, etc...
+    """
     def __init__(self, puzzle: list, win: pygame.Surface):
         self.puzzle = puzzle
         self.OriginalPuzzle = copy.deepcopy(puzzle)
+        """
+        since python is not using calling by reference nor calling by value,
+        OriginalPuzzle must be a new variable that has the same values as puzzle
+        but it is not the same instance of puzzle
+        print(self.OriginalPuzzle is puzzle) should output False
+
+        using 'self.OriginalPuzzle = puzzle' will affect the OriginalPuzzle variable
+        if we modified the puzzle variable and we don't want that
+        """
         self.cells = []
         self.solved = False
         self.selectedCell = None
@@ -210,20 +251,20 @@ class Board(object):
             x = 0
             self.cells.append(innerList)
         
-        # solve the puzzle and store it in a new variable
-        self.solvedPuzzle = copy.deepcopy(puzzle)
+        # solve the puzzle and store it in a new variable using deepcopy
+        self.solvedPuzzle = copy.deepcopy(self.OriginalPuzzle)
         solver = Solver(self.solvedPuzzle)
         solver.solve()
     
     def refreshCells(self) -> list:
-        # insert the numbers of the puzzle to the cells and return the new cells
+        """insert the numbers of the puzzle to the cells and return the new cells"""
         for i in range(9):
             for j in range(9):
                 number = self.puzzle[i][j]
                 self.cells[i][j].number = number
 
     def isFull(self) -> bool:
-        # check if the the puzzle is full
+        """check if the the puzzle is full"""
         for i in range(9):
             for j in range(9):
                 if puzzle[i][j] == 0:
@@ -231,7 +272,8 @@ class Board(object):
         return True
     
     def clearSelection(self) -> None:
-        if self.selectedCell.selected:
+        """Deselect the selected cell and reset the selectedCell and indexOfSelectedCell variables"""
+        if self.selectedCell is not None and self.selectedCell.selected:
             self.selectedCell.select()
         self.selectedCell = None
         self.indexOfSelectedCell = ()
@@ -261,6 +303,9 @@ def draw(win: pygame.Surface, game_font: pygame.freetype.Font) -> None:
 
 
 def main():
+    """
+    Main function
+    """
     pygame.init()
 
     # framerate clock
@@ -299,8 +344,9 @@ def main():
     notificationString = ""
     showNotification = False
     notificationTimer = time.time()
-    NOTIFICATION_PLACE1 = (550, 100)
-    NOTIFICATION_PLACE2 = (550, 400)
+    NOTIFICATION_PLACE1 = (550, 100) # Under the CheckValidButton
+    NOTIFICATION_PLACE2 = (550, 400) # Under the HintButton
+    # set the notificationPlace to be under the CheckValidButton as default value
     notificationPlace = NOTIFICATION_PLACE1
 
     # a timer to tell user how much time he spent
@@ -310,7 +356,7 @@ def main():
 
     # start the background music
     pygame.mixer.music.load("sounds/background.mp3")
-    pygame.mixer.music.play(-1)
+    pygame.mixer.music.play(-1) # infinite loop, play the music again after it finishes
     pygame.mixer.music.set_volume(0.3)
 
     # # load the correct sound effect
@@ -330,6 +376,8 @@ def main():
         # event handling loop
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                # if the user closed the window then break the loop and close
+                # the database connection
                 running = False
                 buttons[3].databaseConnection.closeConnection()
             
@@ -360,7 +408,7 @@ def main():
 
                     # check valid button
                     if buttons[0].rect.collidepoint(pygame.mouse.get_pos()) and buttons[0].Enable:
-                        validPuzzle = buttons[0].isPuzzleValid(puzzle)
+                        validPuzzle = buttons[0].isPuzzleValid(board.puzzle)
 
                         # notify the user if the puzzle is valid or not
                         if validPuzzle:
@@ -408,8 +456,11 @@ def main():
                     
                     # hint button
                     elif buttons[4].rect.collidepoint(pygame.mouse.get_pos()):
+                        # if that button is enabled and he selected a place 
                         if buttons[4].Enable:
                             if board.selectedCell is not None:
+                                # then subtract the hints variable by 1
+                                # and get the right number from board.solvedPuzzle list
                                 hints -= 1
                                 if hints <= 0:
                                     buttons[4].Enable = False
