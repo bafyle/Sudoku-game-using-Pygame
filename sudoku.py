@@ -53,22 +53,46 @@ class Database:
         self.closeConnection()
         # we didn't use this function since we only read from the database
 
-
-# cell class which is a rectangle with some attributes
-class cell(object):
+class RectangledText(object):
     """
-    A cell is a pygame rectangle that has string in the middle.
+    A pygame rectangle that has a position, size and color
     """
-    def __init__(self, number: int, attributes: tuple, win: pygame.Surface):
-        self.number = number
-        self.empty = number == 0
+    def __init__(self, attributes: tuple, win: pygame.Surface):
         self.attributes = attributes
-        self.selected = False
+        self.win = win
         self.NORMAL_COLOR = (230, 240, 255)
         self.SELECTED_COLOR = (190, 215, 255)
-        self.color = self.NORMAL_COLOR
+        self.DISABLED_COLOR = (117, 117, 117)
+        self.Enable = True
         self.rect = pygame.Rect(attributes[0], attributes[1], attributes[2], attributes[3])
-        self.win = win
+        if self.Enable:
+            self.color = self.NORMAL_COLOR
+        else:
+            self.color = self.DISABLED_COLOR
+    
+    def drawRect(self):
+        """
+        Drawing the rectangle to the window with the color 
+        that specified in 'color' tuple variable in position 
+        attributes[0:2] with size attributes[2:]
+        """
+        if not self.Enable:
+            self.color = self.DISABLED_COLOR
+        pygame.draw.rect(self.win, self.color, self.rect)
+    
+    def drawText(self):
+        pass
+
+class Cell(RectangledText):
+    """
+    A cell is a rectangle that contains only a number in the middle of it. 
+    The unit of the puzzle.
+    """
+    def __init__(self, number: int, attributes: tuple, win: pygame.Surface):
+        super().__init__(attributes, win)
+        self.selected = False
+        self.empty = number == 0
+        self.number = number
 
     def select(self) -> None:
         """
@@ -91,40 +115,18 @@ class cell(object):
         elif self.number != 0:
             game_font.render_to(self.win, (self.attributes[0]+18, self.attributes[1]+16),
                                 str(self.number), (255, 0, 0))
-    def drawRect(self):
-        """
-        Drawing the rectangle to the window
-        """
-        pygame.draw.rect(self.win, self.color, self.rect)
 
-class Button(object):
+class Button(RectangledText):
     """
-    a Button class is like the cell class, a pygame rectangle and a 
+    A Button class is like the cell class, a pygame rectangle and a 
     text in the middle of that rectangle but it has different calculation
     for the position of the text
     """
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
+        super().__init__(attributes, win)
         self.text = text
-        self.attributes = attributes
-        self.win = win
-        self.NORMAL_COLOR = (230, 240, 255)
         self.MOUSE_ON_COLOR = (190, 215, 255)
-        self.DISABLED_COLOR = (117, 117, 117)
-        self.Enable = True
-        self.rect = pygame.Rect(attributes[0], attributes[1], attributes[2], attributes[3])
-        self.solver = Solver([])
-        if self.Enable:
-            self.color = self.NORMAL_COLOR
-        else:
-            self.color = self.DISABLED_COLOR
-
-    # drawing the cell rectangle
-    def drawButton(self):
-        if not self.Enable:
-            self.color = self.DISABLED_COLOR
-        pygame.draw.rect(self.win, self.color, self.rect)
     
-    # drawing the text on the button
     def drawText(self, game_font: pygame.freetype.Font):
         padding = self.attributes[2] // 2
         padding -= len(self.text) * 4.5
@@ -151,9 +153,6 @@ class Button(object):
 class ShowAnswerButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
-    
-    def buttonClick(self, *args, **kwargs):
-        return super().buttonClick(*args, **kwargs)
 
 class CheckValidButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
@@ -244,7 +243,7 @@ class Board(object):
             for j in range(9):
                 if j % 3 == 0:
                     x += 3
-                c = cell(self.puzzle[i][j], (x+15, y+15, 50, 50), win)
+                c = Cell(self.puzzle[i][j], (x+15, y+15, 50, 50), win)
                 innerList.append(c)
                 x += 51
             y += 51
@@ -535,7 +534,7 @@ def main():
         #drawing buttons and their texts
         game_font.size = 20
         for button in buttons:
-            button.drawButton()
+            button.drawRect()
             button.drawText(game_font)
         
         # instruction to the user
