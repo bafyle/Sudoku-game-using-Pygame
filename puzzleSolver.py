@@ -152,8 +152,8 @@ class Solver(object):
             # when we try every possible number from 1 to 9 and none of them
             # is valid for the first empty cell then 'currentIndex' will be equal to -1
 
-    @classmethod
-    def getPuzzleFromFile(cls, fileName) -> list:
+    @staticmethod
+    def getPuzzleFromFile(fileName) -> list:
         """
         This function is used to get a puzzle from a file.
         The file must contain a 9x9 sudoku puzzle, every row is seperated by a new line, 
@@ -176,7 +176,11 @@ if __name__ == "__main__":
     solver = Solver(puzzle)
     if solver.solve():
         print("puzzle is solved")
-        print(puzzle, sep='\n')
+        try:
+            import numpy as np
+            print(np.matrix(puzzle))
+        except ImportError:
+            print(puzzle, sep='\n')
     else:
         print("cant solve the puzzle")
     quit(0)
