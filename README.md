@@ -27,13 +27,13 @@ Technologies that were used to create the game and works just fine with them:
 - DB Browser for SQLite     3.12 (not required to run the game)
 
 ## Running the game:
-To run the game you need to install Pygame using pip:
+To run the game you need to install Pygame library using pip:
 ~~~
-pip install pygame
+$ pip3 install pygame
 ~~~
-After the installation is complete you can run the game from:
+After the installation is complete, go to the game folder and run the game from this command:
 ~~~
-python sudoku.py
+$ python3 sudoku.py
 ~~~
 
 ## Solving algorithm:
@@ -48,11 +48,11 @@ All puzzles are stored in a .csv file. pandas library were used to get the top 1
 You can run the code for yourself by:
 - installing pandas:
 ~~~
-pip install pandas
+$ pip install pandas
 ~~~
 - And numpy
 ~~~
-pip install numpy
+$ pip install numpy
 ~~~
 - Download the dataset from this link: https://www.kaggle.com/bryanpark/sudoku and extract the zip file (about 162MB)
 
