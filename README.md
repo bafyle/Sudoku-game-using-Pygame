@@ -19,11 +19,12 @@ The game has 100 puzzle to play with and solving algorithm using backtracking
 Thanks for https://www.kaggle.com/bryanpark/sudoku for providing a 1 million puzzle dataset with answers, i just used the first 100.
 
 ## Technologies:
-- Python                3.7.2
-- Pygame                2.0.0
-- Pandas                1.1.5 (not required to run the game)
-- SQLite3               3.32.2
-- DB Browser for SQLite 3.12 (not required to run the game)
+Technologies that were used to create the game and works just fine with them:
+- Python                    3.7.9
+- Pygame                    2.0.0
+- Pandas                    1.1.5 (not required to run the game)
+- SQLite3 DB-API Interface  3.32.2 (already in Python)
+- DB Browser for SQLite     3.12 (not required to run the game)
 
 ## Running the game:
 To run the game you need to install Pygame using pip:
