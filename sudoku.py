@@ -21,27 +21,43 @@ class Database:
         # connect to the database using sqlite3 library
         # And open the database in read-only mode because we will not insert anything
         # to the database
-        self.connection = sqlite3.connect(f"file:{self.databasePath}?mode=ro", uri = True)
+        connectionQuery = f"file:{self.databasePath}?mode=ro"
+        self.connection = sqlite3.connect(connectionQuery, uri = True)
 
         # initialize the query executioner
         self.cursor = self.connection.cursor()
     
     def getPuzzleString(self, id: int) -> str:
         """
-        This function reads a puzzle from the database and returns it in string foramt
+        This function reads a puzzle from the database and returns 
+        it in string foramt
         """
         # get the puzzle that has 'id' index
-        # 'execute()' function returns an iterable object that contains the output of the select statement 
+        # 'execute()' function returns an iterable object that 
+        # contains the output of the select statement 
         puzzleText = self.cursor.execute("SELECT quiz FROM Quizzes WHERE q_id = ?", [id])
 
         # since the q_id is a primary key in the database,
         # there will be only one object in 'puzzleText'
-        # we get that object and reassign 'puzzleText\ with it
+        # we get that object and reassign 'puzzleText' with it
         for i in puzzleText:
             puzzleText = i
         puzzleText = puzzleText[0]
         
         return puzzleText
+    
+    def getAnswerString(self, id: int) -> str:
+        """
+        This functions reads the answer of a certain puzzle and
+        returns it in string format
+        """
+        answerText = self.cursor.execute("SELECT quiz FROM Answers WHERE a_id = ?", [id])
+
+        for i in answerText:
+            answerText = i
+        answerText = answerText[0]
+
+        return answerText
 
     def closeConnection(self):
         """Closes the connection of the database without commiting any changes"""
@@ -53,7 +69,7 @@ class Database:
         self.closeConnection()
         # we didn't use this function since we only read from the database
 
-class RectangledText(object):
+class Rectangle(object):
     """
     A pygame rectangle that has a position, size and color
     """
@@ -83,7 +99,7 @@ class RectangledText(object):
     def drawText(self):
         pass
 
-class Cell(RectangledText):
+class Cell(Rectangle):
     """
     A cell is a rectangle that contains only a number in the middle of it. 
     The unit of the puzzle.
@@ -116,7 +132,7 @@ class Cell(RectangledText):
             game_font.render_to(self.win, (self.attributes[0]+18, self.attributes[1]+16),
                                 str(self.number), (255, 0, 0))
 
-class Button(RectangledText):
+class Button(Rectangle):
     """
     A Button class is like the cell class, a pygame rectangle and a 
     text in the middle of that rectangle but it has different calculation
