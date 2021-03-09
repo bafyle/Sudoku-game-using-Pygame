@@ -293,6 +293,44 @@ class Board(object):
         self.selectedCell = None
         self.indexOfSelectedCell = ()
 
+
+class Notification:
+    def __init__(self):
+        self.message = ""
+        self.timer = time.time()
+        self.positions = list()
+        self.invoked = False
+        self.currentPosition = tuple()
+        self.displayTime = 2
+    
+    def addPosition(self, newPoisition: tuple) -> None:
+        if type(newPoisition) == tuple:
+            self.positions.append(newPoisition)
+        else:
+            print(f"Position cannot be added")
+
+    def invokeNotification(self, message: str, i: int) -> None:
+        
+        if i < len(self.positions):
+            self.currentPosition = self.positions[i]
+        else:
+            print(f"index out of range")
+            return
+        
+        self.message = message
+        self.timer = time.time()
+        self.invoked = True
+
+    def drawNotification(self, win, game_font) -> None:
+        if self.invoked:
+            game_font.render_to(win, self.currentPosition, self.message, (255, 255, 255))
+            notificationEndTime = time.time()
+            if notificationEndTime - self.timer >= self.displayTime:
+                self.invoked = False
+        else:
+            pass
+
+
 def getTimeInString(seconds: int) -> str:
     """ 
     this function takes a number of seconds and convert it
@@ -355,14 +393,10 @@ def main():
     # 3 hints only is allowed 
     hints = 3
 
-    # notification system data 
-    notificationString = ""
-    showNotification = False
-    notificationTimer = time.time()
-    NOTIFICATION_PLACE1 = (550, 100) # Under the CheckValidButton
-    NOTIFICATION_PLACE2 = (550, 400) # Under the HintButton
-    # set the notificationPlace to be under the CheckValidButton as default value
-    notificationPlace = NOTIFICATION_PLACE1
+    # Notification instance
+    notification = Notification()
+    notification.addPosition((550, 100)) # add position under the check validation button
+    notification.addPosition((550, 400)) # add postion under the hint button
 
     # a timer to tell user how much time he spent
     timerStart = time.time()
@@ -428,14 +462,11 @@ def main():
                         # notify the user if the puzzle is valid or not
                         if validPuzzle:
                             board.solved = True
-                            notificationString = "Your answer is correct!!"
+                            notification.invokeNotification("Your answer is correct!!", 0)
                             # correctSound.play()
                         else:
-                            notificationString = "Think again"
-                        notificationPlace = NOTIFICATION_PLACE1
-                        showNotification = True
-                        notificationTimer = time.time()
-
+                            notification.invokeNotification("Think again", 0)
+                        
                     # show answer button
                     elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()) and buttons[1].Enable:
                         board.puzzle = copy.deepcopy(board.solvedPuzzle)
@@ -466,8 +497,7 @@ def main():
                         timer = 0
                         renderString = "00:00"
                         timerStart = time.time()
-                        # enable the reset button
-                        buttons[2].Enable = True
+                        buttons[2].Enable = True # enable the reset button
                     
                     # hint button
                     elif buttons[4].rect.collidepoint(pygame.mouse.get_pos()):
@@ -483,15 +513,9 @@ def main():
                                 board.puzzle[r][c] = board.solvedPuzzle[r][c]
                                 board.refreshCells()
                             else:
-                                notificationPlace = NOTIFICATION_PLACE2
-                                notificationString = "Select a cell"
-                                showNotification = True
-                                notificationTimer = time.time()
+                                notification.invokeNotification("Select a cell", 1)
                         else:
-                            notificationPlace = NOTIFICATION_PLACE2
-                            notificationString = "You are out of hints"
-                            showNotification = True
-                            notificationTimer = time.time()
+                            notification.invokeNotification("You are out of hints", 1)
 
 
             # if the user pressed a key on the keyboard
@@ -541,13 +565,13 @@ def main():
 
         #-----drawing section-----#
 
-        #drawing cells
+        # drawing cells
         for rowOfCells in board.cells:
             for cell in rowOfCells:
                 cell.drawRect()
                 cell.drawText(game_font)
         
-        #drawing buttons and their texts
+        # drawing buttons and their texts
         game_font.size = 20
         for button in buttons:
             button.drawRect()
@@ -558,12 +582,8 @@ def main():
         game_font.render_to(win, (15, 530), "You can use the arrow keys to navigate", (255, 255, 255))
 
         # show the notification for 2 seconds only
-        if showNotification:
-            game_font.render_to(win, notificationPlace, notificationString, (255, 255, 255))
-            notificationTimerEnd = time.time()
-            if notificationTimerEnd - notificationTimer >= 2:
-                showNotification = False
-        
+        n.drawNotification(win, game_font)
+
         #drawing timer text
         timerEnd = time.time()
         if timerEnd - timerStart >= 1 and board.solved == False:
