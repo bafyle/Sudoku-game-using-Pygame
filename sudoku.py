@@ -582,7 +582,7 @@ def main():
         game_font.render_to(win, (15, 530), "You can use the arrow keys to navigate", (255, 255, 255))
 
         # show the notification for 2 seconds only
-        n.drawNotification(win, game_font)
+        notification.drawNotification(win, game_font)
 
         #drawing timer text
         timerEnd = time.time()
