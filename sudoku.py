@@ -21,11 +21,11 @@ class Database:
         # connect to the database using sqlite3 library
         # And open the database in read-only mode because we will not insert anything
         # to the database
-        connectionQuery = f"file:{self.databasePath}?mode=ro"
-        self.connection = sqlite3.connect(connectionQuery, uri = True)
+        connectionQuery = rf"file:{self.databasePath}?mode=ro"
+        Database.connection = sqlite3.connect(connectionQuery, uri = True)
 
         # initialize the query executioner
-        self.cursor = self.connection.cursor()
+        self.cursor = Database.connection.cursor()
     
     def getPuzzleString(self, id: int) -> str:
         """
@@ -61,12 +61,12 @@ class Database:
 
     def closeConnection(self):
         """Closes the connection of the database without commiting any changes"""
-        self.connection.close()
+        Database.connection.close()
     
     def closeConnectionWithCommit(self):
         """Closes the connection of the database and commits any changes"""
-        self.connection.commit()
-        self.closeConnection()
+        Database.connection.commit()
+        Database.closeConnection()
         # we didn't use this function since we only read from the database
 
 class Rectangle(object):
@@ -350,9 +350,6 @@ def getTimeInString(seconds: int) -> str:
         returnString += ":" + str(second)
 
     return returnString
-
-def draw(win: pygame.Surface, game_font: pygame.freetype.Font) -> None:
-    pass
 
 
 def main():
