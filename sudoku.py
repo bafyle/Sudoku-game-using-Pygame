@@ -4,7 +4,7 @@ try:
     import time
     import random
     import sqlite3
-    from puzzleSolver import Solver
+    from puzzleSolver.puzzleSolver import Solver
     import copy
 except ImportError:
     print("pygame is not installed, open command prompt or the terminal "
@@ -68,6 +68,21 @@ class Database:
         Database.connection.commit()
         Database.closeConnection()
         # we didn't use this function since we only read from the database
+    
+    def readFromFile(fileName: str) -> list:
+        """
+        Static method for getting the puzzle from a file.
+        This function returns a 2D list directly
+        """
+        puzzle = []
+        puzzleFile = open(fileName, "r")
+        lines = puzzleFile.readlines()
+        for line in lines:
+            integers = line[:-1].split(', ')
+            innerList = [int(i) for i in integers]
+            puzzle.append(innerList)
+        puzzleFile.close()
+        return puzzle
 
 class Rectangle(object):
     """

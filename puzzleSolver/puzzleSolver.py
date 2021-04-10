@@ -151,36 +151,3 @@ class Solver(object):
             # all the empty cell and none of guessed number is correct.
             # when we try every possible number from 1 to 9 and none of them
             # is valid for the first empty cell then 'currentIndex' will be equal to -1
-
-    @staticmethod
-    def getPuzzleFromFile(fileName) -> list:
-        """
-        This function is used to get a puzzle from a file.
-        The file must contain a 9x9 sudoku puzzle, every row is seperated by a new line, 
-        every cell in the row of the puzzle must be seperated by a comma,
-        and there must be an empty line in the end of the file
-        """
-        puzzle = []
-        puzzleFile = open(fileName, "r")
-        lines = puzzleFile.readlines()
-        for line in lines:
-            integers = line[:-1].split(', ')
-            innerList = [int(i) for i in integers]
-            puzzle.append(innerList)
-        puzzleFile.close()
-        return puzzle
-
-# testing
-if __name__ == "__main__":
-    puzzle = Solver.getPuzzleFromFile("puzzle.txt")
-    solver = Solver(puzzle)
-    if solver.solve():
-        print("puzzle is solved")
-        try:
-            import numpy as np
-            print(np.matrix(puzzle))
-        except ImportError:
-            print(puzzle, sep='\n')
-    else:
-        print("cant solve the puzzle")
-    quit(0)
