@@ -12,17 +12,14 @@ class Solver(object):
         """
         # first: check if the guess is already exist in its row
         row, col = index
-        for value in self.puzzle[row]:
-            if guess == value:
-                return False
+        if guess in self.puzzle[row]:
+            return False
         
         # second: check if the guess is already exist in its column
         # we need to get the values of that column first to compare with
-        thisColumnValues = [self.puzzle[i][col] for i in range(9)]
-        for value in thisColumnValues:
-            if guess == value:
-                return False
-        
+        if guess in [self.puzzle[i][col] for i in range(9)]:
+            return False
+
         # third: check if the guess exists in the 3x3 square
         # 1- find what square we try search in by using the floor division operator
         # which will give us the standard division results
@@ -63,13 +60,13 @@ class Solver(object):
         r = (row // 3) * 3
         c = (col // 3) * 3
         
-        g = 0
+        found = False
         for i in range(r, r+3):
             for j in range(c, c+3):
                 if self.puzzle[i][j] == guess:
-                    if g != 0:
+                    if found:
                         return False
-                    g += 1
+                    found = True
         return True
 
     # get the all the empty cells indexes
@@ -90,9 +87,11 @@ class Solver(object):
         Returning True if the puzzle is solved and False if the puzzle is unsolvable.
         """
         indicesOfEmptyPlaces = self.getEmptyCellsIndices()
+        lenOfEmptyPlaces = len(indicesOfEmptyPlaces)
 
-        if len(indicesOfEmptyPlaces) == 0:
+        if lenOfEmptyPlaces == 0:
             return False
+        
         # we will start from the first empty cell which will be in the index 0 in our list
         currentIndex = 0
         
@@ -139,7 +138,7 @@ class Solver(object):
             # if we are in the last empty cell and we guessed it correctly (We solved it)
             # then 'currentIndex' will be bigger than the length of the list
             # we return True in this case
-            if currentIndex >= len(indicesOfEmptyPlaces):
+            if currentIndex >= lenOfEmptyPlaces:
                 return True
             
             # if 'currentIndex' is equal to -1 then the puzzle doesn't have a solution

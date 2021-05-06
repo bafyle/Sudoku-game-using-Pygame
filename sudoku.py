@@ -8,9 +8,10 @@ try:
     import copy
 except ImportError:
     print("pygame is not installed, open command prompt or the terminal "
-          "and install the pygame library from \'pip install pygame\' and try again\n"
-          "And make sure these files are in the same directory: "
-          "puzzleSolver.py file, puzzles folder and fonts folder")
+          "and install the pygame library from 'pip3 install pygame' or 'pip install pygame' "
+          "and try again.\n"
+          "And make sure 'puzzleSolver', 'puzzles', 'sounds' and 'fonts' folders "
+          "are in the same directory with 'sudoku.py' file (this file).")
     quit(1)
 
 
