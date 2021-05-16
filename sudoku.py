@@ -1,21 +1,33 @@
 try:
+    # importing pygame library and it's modules
     import pygame
     import pygame.freetype
+
+    # importing necessary libraries
     import time
     import random
     import sqlite3
-    from puzzleSolver.puzzleSolver import Solver
     import copy
-except ImportError:
+    import sys
+
+    # import the Solver class from puzzleSolver.py file
+    from puzzleSolver.puzzleSolver import Solver
+
+except ImportError: # catch any import issues
     print("pygame is not installed, open command prompt or the terminal "
           "and install the pygame library from 'pip3 install pygame' or 'pip install pygame' "
           "and try again.\n"
           "And make sure 'puzzleSolver', 'puzzles', 'sounds' and 'fonts' folders "
           "are in the same directory with 'sudoku.py' file (this file).")
-    quit(1)
+    sys.exit(1)
 
 
 class Database:
+
+    """
+    Connects to sqlite database in read-only mode by passing
+    the database path in string
+    """
     def __init__(self, dbpath: str):
         self.databasePath = dbpath
 
@@ -59,21 +71,24 @@ class Database:
         answerText = answerText[0]
 
         return answerText
-
-    def closeConnection(self):
+    
+    @classmethod
+    def closeConnection(cls):
         """Closes the connection of the database without commiting any changes"""
         Database.connection.close()
     
-    def closeConnectionWithCommit(self):
+    @classmethod
+    def closeConnectionWithCommit(cls):
         """Closes the connection of the database and commits any changes"""
         Database.connection.commit()
         Database.closeConnection()
         # we didn't use this function since we only read from the database
     
+    @staticmethod
     def readFromFile(fileName: str) -> list:
         """
-        Static method for getting the puzzle from a file.
-        This function returns a 2D list directly
+        gets a puzzle from a text file.
+        There is a puzzle in a text file in puzzles folder as an example
         """
         puzzle = []
         puzzleFile = open(fileName, "r")
@@ -87,7 +102,7 @@ class Database:
 
 class Rectangle(object):
     """
-    A pygame rectangle that has a position, size and color
+    Pygame rectangle that has 3 attributes: position, size and color
     """
     def __init__(self, attributes: tuple, win: pygame.Surface):
         self.attributes = attributes
@@ -117,8 +132,8 @@ class Rectangle(object):
 
 class Cell(Rectangle):
     """
-    A cell is a rectangle that contains only a number in the middle of it. 
-    The unit of the puzzle.
+    A cell is a rectangle that contains one number in the middle.
+    a cell can be empty if this cell represents an empty space in the puzzle
     """
     def __init__(self, number: int, attributes: tuple, win: pygame.Surface):
         super().__init__(attributes, win)
@@ -150,9 +165,8 @@ class Cell(Rectangle):
 
 class Button(Rectangle):
     """
-    A Button class is like the cell class, a pygame rectangle and a 
-    text in the middle of that rectangle but it has different calculation
-    for the position of the text
+    A Button class is like the cell class but it has a text in the middle
+    insted of one number and it has different size and it has a reaction with the mouse
     """
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(attributes, win)
@@ -203,7 +217,7 @@ class CheckValidButton(Button):
             self.solver = Solver(puzzle)
             for i in range(9):
                 for f in range(9):
-                    if not self.solver.isThereOnce((i, f), puzzle[i][f]):
+                    if puzzle[i][f] == 0 or not self.solver.isThereOnce((i, f), puzzle[i][f]):
                         return False
             return True
 
@@ -298,7 +312,7 @@ class Board(object):
         """check if the the puzzle is full"""
         for i in range(9):
             for j in range(9):
-                if puzzle[i][j] == 0:
+                if self.puzzle[i][j] == 0:
                     return False
         return True
     
@@ -343,29 +357,27 @@ class Notification:
             notificationEndTime = time.time()
             if notificationEndTime - self.timer >= self.displayTime:
                 self.invoked = False
-        else:
-            pass
-
+        
 
 def getTimeInString(seconds: int) -> str:
     """ 
     this function takes a number of seconds and convert it
-    mm:ss foramt
+    mm:ss format.
     """
-    minute = seconds // 60
-    seconds -= minute*60
+    minutes = seconds // 60
+    seconds -= minutes * 60
     
     second = seconds
-    if minute < 10:
-        returnString = "0" + str(minute)
+    if minutes < 10:
+        outputString = "0" + str(minutes)
     else:
-        returnString = str(minute)
+        outputString = str(minutes)
     if second < 10:
-        returnString += ":0" + str(second)
+        outputString += ":0" + str(second)
     else:
-        returnString += ":" + str(second)
+        outputString += ":" + str(second)
 
-    return returnString
+    return outputString
 
 
 def main():
@@ -441,7 +453,7 @@ def main():
                 # if the user closed the window then break the loop and close
                 # the database connection
                 running = False
-                buttons[3].databaseConnection.closeConnection()
+                Database.closeConnection()
             
             # if the user clicked while the mouse is near the puzzle cells
             # then search for the cell that he selected
@@ -615,7 +627,7 @@ def main():
         #update the screen
         pygame.display.flip()
 
-    quit(0)
+    sys.exit(0)
 
 # if this file is imported, don't execute
 if __name__ == "__main__":
