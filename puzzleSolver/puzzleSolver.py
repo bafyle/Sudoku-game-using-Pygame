@@ -84,7 +84,7 @@ class Solver(object):
     def solve(self) -> bool:
         """
         This function is used to solve a sudoku puzzle using backtracking.
-        Returning True if the puzzle is solved and False if the puzzle is unsolvable.
+        it returns True if the puzzle is solved and False if the puzzle is unsolvable.
         """
         indicesOfEmptyPlaces = self.getEmptyCellsIndices()
         lenOfEmptyPlaces = len(indicesOfEmptyPlaces)
