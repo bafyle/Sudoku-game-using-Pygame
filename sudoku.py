@@ -107,15 +107,12 @@ class Rectangle(object):
     def __init__(self, attributes: tuple, win: pygame.Surface):
         self.attributes = attributes
         self.win = win
-        self.NORMAL_COLOR = (230, 240, 255)
-        self.SELECTED_COLOR = (190, 215, 255)
-        self.DISABLED_COLOR = (117, 117, 117)
         self.Enable = True
         self.rect = pygame.Rect(attributes[0], attributes[1], attributes[2], attributes[3])
         if self.Enable:
-            self.color = self.NORMAL_COLOR
+            self.color = Rectangle.NORMAL_COLOR
         else:
-            self.color = self.DISABLED_COLOR
+            self.color = Rectangle.self.DISABLED_COLOR
     
     def drawRect(self):
         """
@@ -124,11 +121,15 @@ class Rectangle(object):
         attributes[0:2] with size attributes[2:]
         """
         if not self.Enable:
-            self.color = self.DISABLED_COLOR
+            self.color = Rectangle.DISABLED_COLOR
         pygame.draw.rect(self.win, self.color, self.rect)
     
     def drawText(self):
         pass
+
+    NORMAL_COLOR = (230, 240, 255)
+    SELECTED_COLOR = (190, 215, 255)
+    DISABLED_COLOR = (117, 117, 117)
 
 class Cell(Rectangle):
     """
@@ -141,16 +142,16 @@ class Cell(Rectangle):
         self.empty = number == 0
         self.number = number
 
-    def select(self) -> None:
+    def toggleSelection(self) -> None:
         """
         Select or deselect the cell, selecting a cell means change its color
         to SELECTED_COLOR and deselecting a cell means return its color to NORMAL_COLOR
         """
         self.selected = not self.selected
         if not self.selected:
-            self.color = self.NORMAL_COLOR
+            self.color = super().NORMAL_COLOR
         else:
-            self.color = self.SELECTED_COLOR
+            self.color = super().SELECTED_COLOR
     
     def drawText(self, game_font: pygame.freetype.Font) -> None:
         """
@@ -171,7 +172,6 @@ class Button(Rectangle):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(attributes, win)
         self.text = text
-        self.MOUSE_ON_COLOR = (190, 215, 255)
     
     def drawText(self, game_font: pygame.freetype.Font):
         padding = self.attributes[2] // 2
@@ -185,7 +185,7 @@ class Button(Rectangle):
         change the color of the cell if the mouse is hovering on the button
         """
         if self.Enable:
-            self.color = self.MOUSE_ON_COLOR
+            self.color = Button.MOUSE_ON_COLOR
     
 
     def onMouseExit(self):
@@ -193,7 +193,9 @@ class Button(Rectangle):
         Change the color back of the cell if the mouse was hovering on the button and leaved
         """
         if self.Enable:
-            self.color = self.NORMAL_COLOR
+            self.color = Button.NORMAL_COLOR
+
+    MOUSE_ON_COLOR = (190, 215, 255)
 
 # derived classes from the button class
 class ShowAnswerButton(Button):
@@ -279,7 +281,8 @@ class Board(object):
         self.cells = []
         self.solved = False
         self.selectedCell = None
-        self.indexOfSelectedCell = ()
+        self.positionOfSelectedCell = (-1, -1)
+        self.indexOfSelectedCell = -1
         x = 0
         y = 0
         for i in range(9):
@@ -319,12 +322,47 @@ class Board(object):
     def clearSelection(self) -> None:
         """Deselect the selected cell and reset the selectedCell and indexOfSelectedCell variables"""
         if self.selectedCell is not None and self.selectedCell.selected:
-            self.selectedCell.select()
+            self.selectedCell.toggleSelection()
         self.selectedCell = None
-        self.indexOfSelectedCell = ()
-
+        self.positionOfSelectedCell = (-1, -1)
+        self.positionOfSelectedCell = -1
+    
+    def selectCell(self, row: int, col: int) -> None:
+        """
+        Select or deselect a cell from the board 
+        """
+        if 0 <= row < 9 and 0 <= col < 9:
+            if self.selectedCell is not None:
+                self.selectedCell.toggleSelection()
+            self.selectedCell = self.cells[row][col]
+            self.selectedCell.toggleSelection()
+            self.positionOfSelectedCell = (row, col)
+    
+    def getNextEmptyCell(self) -> tuple:
+        """
+        This method returns the position (row, column) of
+        the next editable cell in tuple
+        """
+        r, c = self.positionOfSelectedCell
+        if r != -1:
+            startPosition = 0
+            for i in range(r, 9):
+                if i == r: startPosition = c + 1
+                else: startPosition = 0
+                for f in range(startPosition, 9):
+                    if self.cells[i][f].empty:
+                        return i, f
+        for i in range(9):
+            for f in range(9):
+                if self.cells[i][f].empty:
+                        return i, f
+        return -1, -1
 
 class Notification:
+
+    """
+    Class Notification is for informing the player about any information
+    """
     def __init__(self):
         self.message = ""
         self.timer = time.time()
@@ -334,13 +372,17 @@ class Notification:
         self.displayTime = 2
     
     def addPosition(self, newPoisition: tuple) -> None:
+        """
+        This method takes a tuple of 2 integers and store them
+        to a list of position.
+        """
         if type(newPoisition) == tuple:
             self.positions.append(newPoisition)
         else:
             print(f"Position cannot be added")
 
     def invokeNotification(self, message: str, i: int) -> None:
-        
+
         if i < len(self.positions):
             self.currentPosition = self.positions[i]
         else:
@@ -352,6 +394,7 @@ class Notification:
         self.invoked = True
 
     def drawNotification(self, win, game_font) -> None:
+
         if self.invoked:
             game_font.render_to(win, self.currentPosition, self.message, (255, 255, 255))
             notificationEndTime = time.time()
@@ -466,11 +509,7 @@ def main():
                             if cell.rect.collidepoint(pygame.mouse.get_pos()) and cell.empty:
                                 # if the mouse was clicked when clicking the mouse was colliding 
                                 # with any of the cells, then select that cell
-                                cell.select()
-                                board.indexOfSelectedCell = (i, j)
-                                if board.selectedCell is not None:
-                                    board.selectedCell.select()
-                                board.selectedCell = cell
+                                board.selectCell(i, j)
                                 breakPoint = True
                                 break
                         if breakPoint:
@@ -534,7 +573,7 @@ def main():
                                 hints -= 1
                                 if hints <= 0:
                                     buttons[4].Enable = False
-                                r, c = board.indexOfSelectedCell
+                                r, c = board.positionOfSelectedCell
                                 board.puzzle[r][c] = board.solvedPuzzle[r][c]
                                 board.refreshCells()
                             else:
@@ -548,8 +587,8 @@ def main():
                 # and that key is a num-pad key and the selected cell
                 # is empty, then assign the number he pressed to that cell
                 if pygame.K_KP1 <= event.key <= pygame.K_KP9:
-                    if board.indexOfSelectedCell != ():
-                        r, c = board.indexOfSelectedCell
+                    if board.positionOfSelectedCell != ():
+                        r, c = board.positionOfSelectedCell
                         if board.cells[r][c].empty:
                             board.puzzle[r][c] = event.key + 1 - pygame.K_KP1
                             board.refreshCells()
@@ -560,22 +599,26 @@ def main():
                 elif pygame.K_UP >= event.key >= pygame.K_RIGHT:
                     if board.selectedCell is not None:
                         if event.key == pygame.K_UP:
-                            new_row = (board.indexOfSelectedCell[0] - 1) % 9
-                            new_column = board.indexOfSelectedCell[1]
+                            new_row = (board.positionOfSelectedCell[0] - 1) % 9
+                            new_column = board.positionOfSelectedCell[1]
                         elif event.key == pygame.K_DOWN:
-                            new_row = (board.indexOfSelectedCell[0] + 1) % 9
-                            new_column = board.indexOfSelectedCell[1]
+                            new_row = (board.positionOfSelectedCell[0] + 1) % 9
+                            new_column = board.positionOfSelectedCell[1]
                         elif event.key == pygame.K_LEFT:
-                            new_row = board.indexOfSelectedCell[0]
-                            new_column = (board.indexOfSelectedCell[1] - 1 ) % 9
+                            new_row = board.positionOfSelectedCell[0]
+                            new_column = (board.positionOfSelectedCell[1] - 1 ) % 9
                         else:
-                            new_row = board.indexOfSelectedCell[0]
-                            new_column = (board.indexOfSelectedCell[1] + 1 ) % 9
+                            new_row = board.positionOfSelectedCell[0]
+                            new_column = (board.positionOfSelectedCell[1] + 1 ) % 9
                         if board.cells[new_row][new_column].empty:
-                            board.selectedCell.select()
-                            board.indexOfSelectedCell = (new_row, new_column)
-                            board.selectedCell = board.cells[new_row][new_column]
-                            board.selectedCell.select()
+                            board.selectCell(new_row, new_column)
+
+                elif pygame.K_TAB == event.key:
+                    if board.selectedCell is not None:
+                        r, c = board.getNextEmptyCell()
+                        print(r, c)
+                        if r != -1:
+                            board.selectCell(r, c)
                         
         # change the color of any button of the mouse is standing over it
         if pygame.mouse.get_pos() > (540, 0):
@@ -604,7 +647,7 @@ def main():
         
         # instruction to the user
         game_font.render_to(win, (15, 500), "Select a square and enter a number", (255, 255, 255))
-        game_font.render_to(win, (15, 530), "You can use the arrow keys to navigate", (255, 255, 255))
+        game_font.render_to(win, (15, 530), "You can use the arrow keys or tab to navigate", (255, 255, 255))
 
         # show the notification for 2 seconds only
         notification.drawNotification(win, game_font)
