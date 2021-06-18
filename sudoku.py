@@ -112,7 +112,7 @@ class Rectangle(object):
         if self.Enable:
             self.color = Rectangle.NORMAL_COLOR
         else:
-            self.color = Rectangle.self.DISABLED_COLOR
+            self.color = Rectangle.DISABLED_COLOR
     
     def drawRect(self):
         """
