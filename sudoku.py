@@ -310,14 +310,6 @@ class Board(object):
             for j in range(9):
                 number = self.puzzle[i][j]
                 self.cells[i][j].number = number
-
-    def isFull(self) -> bool:
-        """check if the the puzzle is full"""
-        for i in range(9):
-            for j in range(9):
-                if self.puzzle[i][j] == 0:
-                    return False
-        return True
     
     def clearSelection(self) -> None:
         """Deselect the selected cell and reset the selectedCell and indexOfSelectedCell variables"""
@@ -376,25 +368,19 @@ class Notification:
         This method takes a tuple of 2 integers and store them
         to a list of position.
         """
-        if type(newPoisition) == tuple:
-            self.positions.append(newPoisition)
-        else:
-            print(f"Position cannot be added")
+        self.positions.append(newPoisition)
 
     def invokeNotification(self, message: str, i: int) -> None:
-
         if i < len(self.positions):
             self.currentPosition = self.positions[i]
         else:
             print(f"index out of range")
             return
-        
         self.message = message
         self.timer = time.time()
         self.invoked = True
 
     def drawNotification(self, win, game_font) -> None:
-
         if self.invoked:
             game_font.render_to(win, self.currentPosition, self.message, (255, 255, 255))
             notificationEndTime = time.time()
@@ -502,85 +488,90 @@ def main():
             # then search for the cell that he selected
             # and store its row and column number
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                if pygame.mouse.get_pos() > (14, 14) and pygame.mouse.get_pos() <= (484, 484):
-                    for i, row in enumerate(board.cells):
-                        breakPoint = False
-                        for j, cell in enumerate(row):
-                            if cell.rect.collidepoint(pygame.mouse.get_pos()) and cell.empty:
-                                # if the mouse was clicked when clicking the mouse was colliding 
-                                # with any of the cells, then select that cell
-                                board.selectCell(i, j)
-                                breakPoint = True
+                if event.button == 1:
+                    if pygame.mouse.get_pos() > (14, 14) and pygame.mouse.get_pos() <= (484, 484):
+                        for i, row in enumerate(board.cells):
+                            breakPoint = False
+                            for j, cell in enumerate(row):
+                                if cell.rect.collidepoint(pygame.mouse.get_pos()) and cell.empty:
+                                    # if the mouse was clicked when clicking the mouse was colliding 
+                                    # with any of the cells, then select that cell
+                                    board.selectCell(i, j)
+                                    breakPoint = True
+                                    break
+                            if breakPoint:
                                 break
-                        if breakPoint:
-                            break
 
-                # if the user clicked in the area of of buttons
-                # call 'onClicked' method of the clicked button
-                elif pygame.mouse.get_pos() > (540, 0):
+                    # if the user clicked in the area of of buttons
+                    # call 'onClicked' method of the clicked button
+                    elif pygame.mouse.get_pos() > (540, 0):
+                        # check valid button
+                        if buttons[0].rect.collidepoint(pygame.mouse.get_pos()) and buttons[0].Enable:
+                            validPuzzle = buttons[0].isPuzzleValid(board.puzzle)
 
-                    # check valid button
-                    if buttons[0].rect.collidepoint(pygame.mouse.get_pos()) and buttons[0].Enable:
-                        validPuzzle = buttons[0].isPuzzleValid(board.puzzle)
-
-                        # notify the user if the puzzle is valid or not
-                        if validPuzzle:
-                            board.solved = True
-                            notification.invokeNotification("Your answer is correct!!", 0)
-                            # correctSound.play()
-                        else:
-                            notification.invokeNotification("Think again", 0)
-                        
-                    # show answer button
-                    elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()) and buttons[1].Enable:
-                        board.puzzle = copy.deepcopy(board.solvedPuzzle)
-                        board.refreshCells()
-                        buttons[2].Enable = False
-                        board.solved = True
-
-                    # reset button
-                    elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()) and buttons[2].Enable:
-                        board.puzzle = copy.deepcopy(board.OriginalPuzzle)
-                        board.refreshCells()
-                        board.clearSelection()
-
-                    # next puzzle button
-                    elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()) and buttons[3].Enable:
-
-                        # load a new random puzzle
-                        newIndex = random.randint(1, 100)
-                        while newIndex == currentPuzzleIndex:
-                            newIndex = random.randint(1, 100)
-                        currentPuzzleIndex = newIndex
-                        puzzle = buttons[3].getPuzzle(currentPuzzleIndex)
-                        
-                        # create a new board with the new puzzle
-                        board = Board(puzzle, win)
-
-                        # reset the timer
-                        timer = 0
-                        renderString = "00:00"
-                        timerStart = time.time()
-                        buttons[2].Enable = True # enable the reset button
-                    
-                    # hint button
-                    elif buttons[4].rect.collidepoint(pygame.mouse.get_pos()):
-                        # if that button is enabled and he selected a place 
-                        if buttons[4].Enable:
-                            if board.selectedCell is not None:
-                                # then subtract the hints variable by 1
-                                # and get the right number from board.solvedPuzzle list
-                                hints -= 1
-                                if hints <= 0:
-                                    buttons[4].Enable = False
-                                r, c = board.positionOfSelectedCell
-                                board.puzzle[r][c] = board.solvedPuzzle[r][c]
-                                board.refreshCells()
+                            # notify the user if the puzzle is valid or not
+                            if validPuzzle:
+                                board.solved = True
+                                notification.invokeNotification("Your answer is correct!!", 0)
+                                # correctSound.play()
                             else:
-                                notification.invokeNotification("Select a cell", 1)
-                        else:
-                            notification.invokeNotification("You are out of hints", 1)
+                                notification.invokeNotification("Think again", 0)
+                            
+                        # show answer button
+                        elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()) and buttons[1].Enable:
+                            board.puzzle = copy.deepcopy(board.solvedPuzzle)
+                            board.refreshCells()
+                            buttons[2].Enable = False
+                            board.solved = True
 
+                        # reset button
+                        elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()) and buttons[2].Enable:
+                            board.puzzle = copy.deepcopy(board.OriginalPuzzle)
+                            board.refreshCells()
+                            board.clearSelection()
+
+                        # next puzzle button
+                        elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()) and buttons[3].Enable:
+
+                            # load a new random puzzle
+                            newIndex = random.randint(1, 100)
+                            while newIndex == currentPuzzleIndex:
+                                newIndex = random.randint(1, 100)
+                            currentPuzzleIndex = newIndex
+                            puzzle = buttons[3].getPuzzle(currentPuzzleIndex)
+                            
+                            # create a new board with the new puzzle
+                            board = Board(puzzle, win)
+
+                            # reset the timer
+                            timer = 0
+                            renderString = "00:00"
+                            timerStart = time.time()
+                            buttons[2].Enable = True # enable the reset button
+                        
+                        # hint button
+                        elif buttons[4].rect.collidepoint(pygame.mouse.get_pos()):
+                            # if that button is enabled and he selected a place 
+                            if buttons[4].Enable:
+                                if board.selectedCell is not None:
+                                    # then subtract the hints variable by 1
+                                    # and get the right number from board.solvedPuzzle list
+                                    hints -= 1
+                                    if hints <= 0:
+                                        buttons[4].Enable = False
+                                    r, c = board.positionOfSelectedCell
+                                    board.puzzle[r][c] = board.solvedPuzzle[r][c]
+                                    board.refreshCells()
+                                else:
+                                    notification.invokeNotification("Select a cell", 1)
+                            else:
+                                notification.invokeNotification("You are out of hints", 1)
+                
+                # change volume using mouse wheel
+                elif event.button == 4:
+                    pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() + 0.1)
+                elif event.button == 5:
+                    pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() - 0.1)
 
             # if the user pressed a key on the keyboard
             elif event.type == pygame.KEYDOWN:
