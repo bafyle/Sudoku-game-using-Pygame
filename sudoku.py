@@ -317,7 +317,6 @@ class Board(object):
             self.selectedCell.toggleSelection()
         self.selectedCell = None
         self.positionOfSelectedCell = (-1, -1)
-        self.positionOfSelectedCell = -1
     
     def selectCell(self, row: int, col: int) -> None:
         """
@@ -432,7 +431,7 @@ def main():
     buttons = [
         CheckValidButton("Check your answer", (550, 50, 200, 30), win),
         ShowAnswerButton("Show answer", (550, 150, 200, 30), win),
-        ResetPuzzleButton("Reset", (550, 250, 200, 30), win),
+        ResetPuzzleButton("Clear", (550, 250, 200, 30), win),
         GetAnotherPuzzleButton("Next puzzle", (550, 450, 200, 30), win),
         HintButton("Hint", (550, 350, 200, 30), win),
     ]
@@ -450,6 +449,7 @@ def main():
     # Notification instance
     notification = Notification()
     notification.addPosition((550, 100)) # add position under the check validation button
+    notification.addPosition((550, 300)) # add position under the resert button
     notification.addPosition((550, 400)) # add postion under the hint button
 
     # a timer to tell user how much time he spent
@@ -458,7 +458,7 @@ def main():
     timer = 0
 
     # start the background music
-    pygame.mixer.music.load("sounds/background.mp3")
+    pygame.mixer.music.load("./sounds/background.mp3")
     pygame.mixer.music.play(-1) # infinite loop, play the music again after it finishes
     pygame.mixer.music.set_volume(0.3)
 
@@ -529,10 +529,10 @@ def main():
                             board.puzzle = copy.deepcopy(board.OriginalPuzzle)
                             board.refreshCells()
                             board.clearSelection()
+                            notification.invokeNotification("Board cleared", 1)
 
                         # next puzzle button
                         elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()) and buttons[3].Enable:
-
                             # load a new random puzzle
                             newIndex = random.randint(1, 100)
                             while newIndex == currentPuzzleIndex:
@@ -557,21 +557,23 @@ def main():
                                     # then subtract the hints variable by 1
                                     # and get the right number from board.solvedPuzzle list
                                     hints -= 1
-                                    if hints <= 0:
-                                        buttons[4].Enable = False
                                     r, c = board.positionOfSelectedCell
                                     board.puzzle[r][c] = board.solvedPuzzle[r][c]
                                     board.refreshCells()
                                 else:
-                                    notification.invokeNotification("Select a cell", 1)
+                                    notification.invokeNotification("Select a cell", 2)
                             else:
-                                notification.invokeNotification("You are out of hints", 1)
+                                notification.invokeNotification("You are out of hints", 2)
                 
                 # change volume using mouse wheel
                 elif event.button == 4:
-                    pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() + 0.1)
+                    if pygame.mixer.music.get_volume() != 1:
+                        pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() + 0.1)
                 elif event.button == 5:
-                    pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() - 0.1)
+                    if pygame.mixer.music.get_volume() <= 0.1:
+                        pygame.mixer.music.set_volume(0)
+                    else:
+                        pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() - 0.1)
 
             # if the user pressed a key on the keyboard
             elif event.type == pygame.KEYDOWN:
@@ -604,14 +606,14 @@ def main():
                         if board.cells[new_row][new_column].empty:
                             board.selectCell(new_row, new_column)
 
+                # get the next empty cell by pressing tab
                 elif pygame.K_TAB == event.key:
                     if board.selectedCell is not None:
                         r, c = board.getNextEmptyCell()
-                        print(r, c)
                         if r != -1:
                             board.selectCell(r, c)
                         
-        # change the color of any button of the mouse is standing over it
+        # change the color of any button if the mouse is hovering over it
         if pygame.mouse.get_pos() > (540, 0):
             for button in buttons:
                 if button.rect.collidepoint(pygame.mouse.get_pos()):
@@ -622,7 +624,7 @@ def main():
         # fill the screen with black to end the previous frame
         win.fill(BACKGROUND_COLOR)
 
-        #-----drawing section-----#
+        #-------------drawing section-------------#
 
         # drawing cells
         for rowOfCells in board.cells:
@@ -639,7 +641,9 @@ def main():
         # instruction to the user
         game_font.render_to(win, (15, 500), "Select a square and enter a number", (255, 255, 255))
         game_font.render_to(win, (15, 530), "You can use the arrow keys or tab to navigate", (255, 255, 255))
-
+        game_font.size = 18
+        game_font.render_to(win, (420, 580), "Music volume can be changed using mouse wheel", (255, 255, 255))
+        game_font.size = 20
         # show the notification for 2 seconds only
         notification.drawNotification(win, game_font)
 
