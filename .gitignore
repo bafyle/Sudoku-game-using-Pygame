@@ -1,7 +1,6 @@
-__pycache__/
-puzzles/archive.zip/
-sudoku.csv.zip/
-puzzleSolver/__pycache__/
-sounds/correct.mp3/
-scratch.py/
-
+__pycache__
+puzzles/archive.zip
+sudoku.csv.zip
+puzzleSolver/__pycache__
+sounds/correct.mp3
+scratch.py
