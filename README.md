@@ -7,6 +7,7 @@ Simple Sudoku game and solver created with Python and Pygame library.
 * [Running the game](#running-the-game)
 * [Solving algorithm](#solving-algorithm)
 * [Puzzles](#puzzles)
+* [Game images](#game-images)
 
 ## General Info:
 Old Sudoku game
@@ -19,12 +20,14 @@ The game has 100 puzzle to play with and solving algorithm using backtracking
 Thanks for https://www.kaggle.com/bryanpark/sudoku for providing a 1 million puzzle dataset with answers, i just used the first 100.
 
 ## Technologies:
-Technologies that were used to create the game and works just fine with them:
-- Python                    3.7.9
+To run the game you need:
+- Python                    3.6+
 - Pygame                    2.0.0
-- Pandas                    1.1.5 (not required to run the game)
-- SQLite3 DB-API Interface  (already installed in Python)
-- DB Browser for SQLite     3.12 (not required to run the game)
+
+Go to [Running the game](#running-the-game) section to run the game
+
+Other libraries for creating your own database 
+- Pandas                    1.1.5
 
 ## Running the game:
 To run the game you need to install Pygame library using pip:
@@ -43,23 +46,35 @@ You can see the algorithm itself in the puzzleSolver for more details.
 ## Puzzles:
 All puzzles are stored in puzzles.db file which is a SQLite database.
 
-You can change the puzzles or try to insert the puzzles from the dataset to the database by:
+You can change the puzzles or try to insert new puzzles from a dataset by:
 
-- installing pandas:
+- Installing pandas:
 ~~~
 $ pip3 install pandas
 ~~~
-- Download the dataset from this link: https://www.kaggle.com/bryanpark/sudoku and extract the zip file (about 162MB)
+- Download your dataset in puzzles folder OR
+use this link: https://www.kaggle.com/bryanpark/sudoku and extract the zip file (about 162MB) in puzzles folder
 
-- Create an empty database file from DB Browser For SQLite using the 'Table Creation.sql' file (located in puzzles folder) and name it 'puzzels.db'.
+- Move puzzles.db file from puzzles directory (deleting the file is not recommended because if something wrong happened, the game will not run)
 
-- Change the number of puzzles that you want to store from the dataset:
+- Open getPuzzles.py and change 'puzzleNumber' variable if you want
 ~~~
-puzzlesNumber = 100 # number of puzzles
-~~~
-- run the 'getPuzzles.py' file
+import pandas as pd
+import sqlite3 as sql
 
-You can use any dataset, but you have to make sure that all puzzles are in string format and the missing numbers are zeros. Example:
+puzzlesNumber = 100
+...
+~~~
+
+- If you used your own dataset, you have to change the body of the loop or the entire script to suite your data
+
+- If not then, run 'getPuzzles.py' file and wait couple seconds and you should see a new database file
+
+All puzzles must be in string format and the missing numbers are zeros. Example:
 ~~~
 004300209005009001070060043006002087190007400050083000600000105003508690042910300
 ~~~
+
+## Game images:
+![alt screenshot 1](./docs/images/1.png)
+![alt screenshot 2](./docs/images/2.png)
