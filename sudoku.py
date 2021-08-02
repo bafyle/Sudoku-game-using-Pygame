@@ -557,6 +557,8 @@ def main():
                                     # then subtract the hints variable by 1
                                     # and get the right number from board.solvedPuzzle list
                                     hints -= 1
+                                    if hints <= 0:
+                                        buttons[4].Enable = False
                                     r, c = board.positionOfSelectedCell
                                     board.puzzle[r][c] = board.solvedPuzzle[r][c]
                                     board.refreshCells()
