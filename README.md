@@ -76,5 +76,5 @@ All puzzles must be in string format and the missing numbers are zeros. Example:
 ~~~
 
 ## Game images:
-![alt screenshot 1](./docs/images/1.png)
-![alt screenshot 2](./docs/images/2.png)
+![alt screenshot 1](./1.png)
+![alt screenshot 2](./2.png)
