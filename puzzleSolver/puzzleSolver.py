@@ -3,7 +3,7 @@ class Solver(object):
     def __init__(self, puzzle: list):
         self.puzzle = puzzle
 
-    def isValid(self, index: tuple, guess: int) -> bool:
+    def is_valid(self, index: tuple, guess: int) -> bool:
 
         """
         Returning a True if the guess is in a correct place and False otherwise.
@@ -38,7 +38,7 @@ class Solver(object):
         # if the guess doesn't exist in the row, column or the 3x3 square, then return True
         return True
     
-    def isThereOnce(self, index: tuple, guess: int) -> bool:
+    def is_there_once(self, index: tuple, guess: int) -> bool:
 
         """
         Returning a True if the guess is in the row, column or 3x3 square once only
@@ -51,8 +51,8 @@ class Solver(object):
                 return False
         
         
-        thisColumnValues = [self.puzzle[i][col] for i in range(9)]
-        for i, value in enumerate(thisColumnValues):
+        this_column_values = [self.puzzle[i][col] for i in range(9)]
+        for i, value in enumerate(this_column_values):
             if guess == value and i != row:
                 return False
         
@@ -70,36 +70,36 @@ class Solver(object):
         return True
 
     # get the all the empty cells indexes
-    def getEmptyCellsIndices(self) -> list:
+    def get_empty_cells(self) -> list:
         """
         Return a list full of the indices of the empty places in the puzzle
         """
-        indicesOfEmptyPlaces = []
+        empty_places = []
         for i in range(9):
             for j in range(9):
                 if self.puzzle[i][j] == 0:
-                    indicesOfEmptyPlaces.append((i, j))
-        return indicesOfEmptyPlaces
+                    empty_places.append((i, j))
+        return empty_places
 
     def solve(self) -> bool:
         """
         This function is used to solve a sudoku puzzle using backtracking.
         it returns True if the puzzle is solved and False if the puzzle is unsolvable.
         """
-        indicesOfEmptyPlaces = self.getEmptyCellsIndices()
-        lenOfEmptyPlaces = len(indicesOfEmptyPlaces)
+        empty_places = self.get_empty_cells()
+        empty_places_len = len(empty_places)
 
-        if lenOfEmptyPlaces == 0:
+        if empty_places_len == 0:
             return False
         
         # we will start from the first empty cell which will be in the index 0 in our list
-        currentIndex = 0
+        current_index = 0
         
         # main algorithm
         while True:
             
             # we first get the the row and the column of the empty cell
-            r, c = indicesOfEmptyPlaces[currentIndex]
+            r, c = empty_places[current_index]
 
             # let 'value' be equal to 0
             value = self.puzzle[r][c]
@@ -121,16 +121,16 @@ class Solver(object):
                 else:
                     value = 0
                     self.puzzle[r][c] = value
-                    currentIndex -= 1
+                    current_index -= 1
                     break
                     
                 # if 'value' which is the guessed number is valid in that cell
                 # set the cell to the guessed number and increase the 'currentIndex' by 1
                 # to make it points to the next empty cell
                 # and break from the loop to go the next cell 
-                if self.isValid(indicesOfEmptyPlaces[currentIndex], value):
+                if self.is_valid(empty_places[current_index], value):
                     self.puzzle[r][c] = value
-                    currentIndex += 1
+                    current_index += 1
                     break
                 # notice that we check the the row, column and the 3x3 square
                 # before we set the cell with our guessed number
@@ -138,12 +138,12 @@ class Solver(object):
             # if we are in the last empty cell and we guessed it correctly (We solved it)
             # then 'currentIndex' will be bigger than the length of the list
             # we return True in this case
-            if currentIndex >= lenOfEmptyPlaces:
+            if current_index >= empty_places_len:
                 return True
             
             # if 'currentIndex' is equal to -1 then the puzzle doesn't have a solution
             # we return False in this case
-            elif currentIndex <= -1:
+            elif current_index <= -1:
                 return False
             
             # the 'currentIndex' variable will be less than 0 if we backtracked

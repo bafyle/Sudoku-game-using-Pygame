@@ -4,6 +4,7 @@ try:
     import pygame.freetype
 
     # importing necessary libraries
+    from abc import ABC, abstractmethod
     import time
     import random
     import sqlite3
@@ -23,24 +24,23 @@ except ImportError: # catch any import issues
 
 
 class Database:
-
     """
     Connects to sqlite database in read-only mode by passing
     the database path in string
     """
     def __init__(self, dbpath: str):
-        self.databasePath = dbpath
+        self.database_path = dbpath
 
         # connect to the database using sqlite3 library
         # And open the database in read-only mode because we will not insert anything
         # to the database
-        connectionQuery = rf"file:{self.databasePath}?mode=ro"
-        Database.connection = sqlite3.connect(connectionQuery, uri = True)
+        connection_query = rf"file:{self.database_path}?mode=ro"
+        Database.connection = sqlite3.connect(connection_query, uri = True)
 
         # initialize the query executioner
         self.cursor = Database.connection.cursor()
     
-    def getPuzzleString(self, id: int) -> str:
+    def get_puzzle_string(self, id: int) -> str:
         """
         This function reads a puzzle from the database and returns 
         it in string foramt
@@ -48,59 +48,58 @@ class Database:
         # get the puzzle that has 'id' index
         # 'execute()' function returns an iterable object that 
         # contains the output of the select statement 
-        puzzleText = self.cursor.execute("SELECT quiz FROM Quizzes WHERE q_id = ?", [id])
+        puzzle_text = self.cursor.execute("SELECT quiz FROM Quizzes WHERE q_id = ?", [id])
 
         # since the q_id is a primary key in the database,
         # there will be only one object in 'puzzleText'
         # we get that object and reassign 'puzzleText' with it
-        for i in puzzleText:
-            puzzleText = i
-        puzzleText = puzzleText[0]
+        for i in puzzle_text:
+            puzzle_text = i
+        puzzle_text = puzzle_text[0]
         
-        return puzzleText
+        return puzzle_text
     
-    def getAnswerString(self, id: int) -> str:
+    def get_answer_string(self, id: int) -> str:
         """
         This functions reads the answer of a certain puzzle and
         returns it in string format
         """
-        answerText = self.cursor.execute("SELECT quiz FROM Answers WHERE a_id = ?", [id])
+        answer_text = self.cursor.execute("SELECT quiz FROM Answers WHERE a_id = ?", [id])
 
-        for i in answerText:
-            answerText = i
-        answerText = answerText[0]
+        for i in answer_text:
+            answer_text = i
+        answer_text = answer_text[0]
 
-        return answerText
+        return answer_text
     
     @classmethod
-    def closeConnection(cls):
+    def close_connection(cls):
         """Closes the connection of the database without commiting any changes"""
         Database.connection.close()
     
     @classmethod
-    def closeConnectionWithCommit(cls):
+    def close_connection_commit(cls):
         """Closes the connection of the database and commits any changes"""
         Database.connection.commit()
-        Database.closeConnection()
+        Database.close_connection()
         # we didn't use this function since we only read from the database
     
     @staticmethod
-    def readFromFile(fileName: str) -> list:
+    def read_file(file_name: str) -> list:
         """
         gets a puzzle from a text file.
         There is a puzzle in a text file in puzzles folder as an example
         """
-        puzzle = []
-        puzzleFile = open(fileName, "r")
-        lines = puzzleFile.readlines()
-        for line in lines:
-            integers = line[:-1].split(', ')
-            innerList = [int(i) for i in integers]
-            puzzle.append(innerList)
-        puzzleFile.close()
+        puzzle = list()
+        with open(file_name, "r") as puzzle_file:
+            lines = puzzle_file.readlines()
+            for line in lines:
+                integers = line[:-1].split(', ')
+                inner_list = [int(i) for i in integers]
+                puzzle.append(inner_list)
         return puzzle
 
-class Rectangle(object):
+class Rectangle(ABC):
     """
     Pygame rectangle that has 3 attributes: position, size and color
     """
@@ -114,7 +113,7 @@ class Rectangle(object):
         else:
             self.color = Rectangle.DISABLED_COLOR
     
-    def drawRect(self):
+    def draw_rect(self):
         """
         Drawing the rectangle to the window with the color 
         that specified in 'color' tuple variable in position 
@@ -124,9 +123,10 @@ class Rectangle(object):
             self.color = Rectangle.DISABLED_COLOR
         pygame.draw.rect(self.win, self.color, self.rect)
     
-    def drawText(self):
+    @abstractmethod
+    def draw_text(self):
         pass
-
+    
     NORMAL_COLOR = (230, 240, 255)
     SELECTED_COLOR = (190, 215, 255)
     DISABLED_COLOR = (117, 117, 117)
@@ -142,7 +142,7 @@ class Cell(Rectangle):
         self.empty = number == 0
         self.number = number
 
-    def toggleSelection(self) -> None:
+    def toggle_selection(self) -> None:
         """
         Select or deselect the cell, selecting a cell means change its color
         to SELECTED_COLOR and deselecting a cell means return its color to NORMAL_COLOR
@@ -153,7 +153,7 @@ class Cell(Rectangle):
         else:
             self.color = super().SELECTED_COLOR
     
-    def drawText(self, game_font: pygame.freetype.Font) -> None:
+    def draw_text(self, game_font: pygame.freetype.Font) -> None:
         """
         Drawing the cell text to the window, which is a single digit number 
         """
@@ -173,14 +173,14 @@ class Button(Rectangle):
         super().__init__(attributes, win)
         self.text = text
     
-    def drawText(self, game_font: pygame.freetype.Font):
+    def draw_text(self, game_font: pygame.freetype.Font):
         padding = self.attributes[2] // 2
         padding -= len(self.text) * 4.5
 
         game_font.render_to(self.win, (self.attributes[0]+padding, self.attributes[1]+8),
                             self.text, (0, 0, 0))
 
-    def onMouseEnter(self):
+    def on_mouse_enter(self):
         """
         change the color of the cell if the mouse is hovering on the button
         """
@@ -188,7 +188,7 @@ class Button(Rectangle):
             self.color = Button.MOUSE_ON_COLOR
     
 
-    def onMouseExit(self):
+    def on_mouse_exit(self):
         """
         Change the color back of the cell if the mouse was hovering on the button and leaved
         """
@@ -206,7 +206,7 @@ class CheckValidButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
     
-    def isPuzzleValid(self, puzzle: list) -> bool:
+    def is_puzzle_valid(self, puzzle: list) -> bool:
         """
         Return true if the puzzle is correct and false otherwise, by calling
         the isThereOnce method in the Solver Class.
@@ -219,7 +219,7 @@ class CheckValidButton(Button):
             self.solver = Solver(puzzle)
             for i in range(9):
                 for f in range(9):
-                    if puzzle[i][f] == 0 or not self.solver.isThereOnce((i, f), puzzle[i][f]):
+                    if puzzle[i][f] == 0 or not self.solver.is_there_once((i, f), puzzle[i][f]):
                         return False
             return True
 
@@ -238,37 +238,36 @@ class GetAnotherPuzzleButton(Button):
         super().__init__(text, attributes, win)
         
         # create instance of database class with the path to the database
-        self.databaseConnection = Database("puzzles/puzzles.db")
+        self.database_connection = Database("puzzles/puzzles.db")
 
     
-    def getPuzzle(self, puzzleIndex: int) -> list:
+    def get_puzzle(self, puzzle_index: int) -> list:
         """Get the text puzzle from the database adn convert it to a list"""
         if self.Enable:
 
             # get the puzzle from the database as string
-            puzzleText = self.databaseConnection.getPuzzleString(puzzleIndex)
+            puzzle_text = self.database_connection.get_puzzle_string(puzzle_index)
 
             # convert that string to a list of list of integers
-            newPuzzle = []
-            innerList = []
-            for i in range(81):
-                if i % 9 == 0 and i != 0:
-                    newPuzzle.append(innerList)
-                    innerList = []
-                innerList.append(int(puzzleText[i]))
-            newPuzzle.append(innerList)
+            new_puzzle = list()
+            inner_list = list()
+            for index, char in enumerate(puzzle_text):
+                if index % 9 == 0 and index != 0:
+                    new_puzzle.append(inner_list)
+                    inner_list = list()
+                inner_list.append(int(char))
+            new_puzzle.append(inner_list)
 
             # return the new puzzle
-            return newPuzzle
+            return new_puzzle
 
-# board class
-class Board(object):
+class Board:
     """
     This class is for managing the board: add a number to the puzzle , solve the puzzle, etc...
     """
     def __init__(self, puzzle: list, win: pygame.Surface):
         self.puzzle = puzzle
-        self.OriginalPuzzle = copy.deepcopy(puzzle)
+        self.original_puzzle = copy.deepcopy(puzzle)
         """
         since python is not using calling by reference nor calling by value,
         OriginalPuzzle must be a new variable that has the same values as puzzle
@@ -280,9 +279,9 @@ class Board(object):
         """
         self.cells = []
         self.solved = False
-        self.selectedCell = None
-        self.positionOfSelectedCell = (-1, -1)
-        self.indexOfSelectedCell = -1
+        self.selected_cell = None
+        self.position_of_selected_cell = (-1, -1)
+        self.index_of_selected_cell = -1
         x = 0
         y = 0
         for i in range(9):
@@ -300,41 +299,41 @@ class Board(object):
             self.cells.append(innerList)
         
         # solve the puzzle and store it in a new variable using deepcopy
-        self.solvedPuzzle = copy.deepcopy(self.OriginalPuzzle)
-        solver = Solver(self.solvedPuzzle)
+        self.solved_puzzle = copy.deepcopy(self.original_puzzle)
+        solver = Solver(self.solved_puzzle)
         solver.solve()
     
-    def refreshCells(self) -> list:
+    def refresh_cells(self) -> list:
         """insert the numbers of the puzzle to the cells and return the new cells"""
         for i in range(9):
             for j in range(9):
                 number = self.puzzle[i][j]
                 self.cells[i][j].number = number
     
-    def clearSelection(self) -> None:
+    def clear_selection(self) -> None:
         """Deselect the selected cell and reset the selectedCell and indexOfSelectedCell variables"""
-        if self.selectedCell is not None and self.selectedCell.selected:
-            self.selectedCell.toggleSelection()
-        self.selectedCell = None
-        self.positionOfSelectedCell = (-1, -1)
+        if self.selected_cell is not None and self.selected_cell.selected:
+            self.selected_cell.toggle_selection()
+        self.selected_cell = None
+        self.position_of_selected_cell = (-1, -1)
     
-    def selectCell(self, row: int, col: int) -> None:
+    def select_cell(self, row: int, col: int) -> None:
         """
         Select or deselect a cell from the board 
         """
         if 0 <= row < 9 and 0 <= col < 9:
-            if self.selectedCell is not None:
-                self.selectedCell.toggleSelection()
-            self.selectedCell = self.cells[row][col]
-            self.selectedCell.toggleSelection()
-            self.positionOfSelectedCell = (row, col)
+            if self.selected_cell is not None:
+                self.selected_cell.toggle_selection()
+            self.selected_cell = self.cells[row][col]
+            self.selected_cell.toggle_selection()
+            self.position_of_selected_cell = (row, col)
     
-    def getNextEmptyCell(self) -> tuple:
+    def next_empty_cell(self) -> tuple:
         """
         This method returns the position (row, column) of
         the next editable cell in tuple
         """
-        r, c = self.positionOfSelectedCell
+        r, c = self.position_of_selected_cell
         if r != -1:
             startPosition = 0
             for i in range(r, 9):
@@ -362,14 +361,14 @@ class Notification:
         self.currentPosition = tuple()
         self.displayTime = 2
     
-    def addPosition(self, newPoisition: tuple) -> None:
+    def add_position(self, newPoisition: tuple) -> None:
         """
         This method takes a tuple of 2 integers and store them
         to a list of position.
         """
         self.positions.append(newPoisition)
 
-    def invokeNotification(self, message: str, i: int) -> None:
+    def invoke_notification(self, message: str, i: int) -> None:
         if i < len(self.positions):
             self.currentPosition = self.positions[i]
         else:
@@ -379,7 +378,7 @@ class Notification:
         self.timer = time.time()
         self.invoked = True
 
-    def drawNotification(self, win, game_font) -> None:
+    def draw(self, win, game_font) -> None:
         if self.invoked:
             game_font.render_to(win, self.currentPosition, self.message, (255, 255, 255))
             notificationEndTime = time.time()
@@ -387,7 +386,7 @@ class Notification:
                 self.invoked = False
         
 
-def getTimeInString(seconds: int) -> str:
+def get_time(seconds: int) -> str:
     """ 
     this function takes a number of seconds and convert it
     mm:ss format.
@@ -397,15 +396,15 @@ def getTimeInString(seconds: int) -> str:
     
     second = seconds
     if minutes < 10:
-        outputString = "0" + str(minutes)
+        output = "0" + str(minutes)
     else:
-        outputString = str(minutes)
+        output = str(minutes)
     if second < 10:
-        outputString += ":0" + str(second)
+        output += ":0" + str(second)
     else:
-        outputString += ":" + str(second)
+        output += ":" + str(second)
 
-    return outputString
+    return output
 
 
 def main():
@@ -437,8 +436,8 @@ def main():
     ]
 
     # load a random puzzle
-    currentPuzzleIndex = random.randint(1, 100)
-    puzzle = buttons[3].getPuzzle(currentPuzzleIndex)
+    current_puzzle_index = random.randint(1, 100)
+    puzzle = buttons[3].get_puzzle(current_puzzle_index)
 
     # initialize the cells
     board = Board(puzzle, win)
@@ -448,13 +447,13 @@ def main():
 
     # Notification instance
     notification = Notification()
-    notification.addPosition((550, 100)) # add position under the check validation button
-    notification.addPosition((550, 300)) # add position under the resert button
-    notification.addPosition((550, 400)) # add postion under the hint button
+    notification.add_position((550, 100)) # add position under the check validation button
+    notification.add_position((550, 300)) # add position under the resert button
+    notification.add_position((550, 400)) # add postion under the hint button
 
     # a timer to tell user how much time he spent
-    timerStart = time.time()
-    renderString = "00:00"
+    timer_start = time.time()
+    render_string = "00:00"
     timer = 0
 
     # start the background music
@@ -482,7 +481,7 @@ def main():
                 # if the user closed the window then break the loop and close
                 # the database connection
                 running = False
-                Database.closeConnection()
+                Database.close_connection()
             
             # if the user clicked while the mouse is near the puzzle cells
             # then search for the cell that he selected
@@ -496,7 +495,7 @@ def main():
                                 if cell.rect.collidepoint(pygame.mouse.get_pos()) and cell.empty:
                                     # if the mouse was clicked when clicking the mouse was colliding 
                                     # with any of the cells, then select that cell
-                                    board.selectCell(i, j)
+                                    board.select_cell(i, j)
                                     breakPoint = True
                                     break
                             if breakPoint:
@@ -507,65 +506,65 @@ def main():
                     elif pygame.mouse.get_pos() > (540, 0):
                         # check valid button
                         if buttons[0].rect.collidepoint(pygame.mouse.get_pos()) and buttons[0].Enable:
-                            validPuzzle = buttons[0].isPuzzleValid(board.puzzle)
+                            valid_puzzle = buttons[0].is_puzzle_valid(board.puzzle)
 
                             # notify the user if the puzzle is valid or not
-                            if validPuzzle:
+                            if valid_puzzle:
                                 board.solved = True
-                                notification.invokeNotification("Your answer is correct!!", 0)
+                                notification.invoke_notification("Your answer is correct!!", 0)
                                 # correctSound.play()
                             else:
-                                notification.invokeNotification("Think again", 0)
+                                notification.invoke_notification("Think again", 0)
                             
                         # show answer button
                         elif buttons[1].rect.collidepoint(pygame.mouse.get_pos()) and buttons[1].Enable:
-                            board.puzzle = copy.deepcopy(board.solvedPuzzle)
-                            board.refreshCells()
+                            board.puzzle = copy.deepcopy(board.solved_puzzle)
+                            board.refresh_cells()
                             buttons[2].Enable = False
                             board.solved = True
 
                         # reset button
                         elif buttons[2].rect.collidepoint(pygame.mouse.get_pos()) and buttons[2].Enable:
-                            board.puzzle = copy.deepcopy(board.OriginalPuzzle)
-                            board.refreshCells()
-                            board.clearSelection()
-                            notification.invokeNotification("Board cleared", 1)
+                            board.puzzle = copy.deepcopy(board.original_puzzle)
+                            board.refresh_cells()
+                            board.clear_selection()
+                            notification.invoke_notification("Board cleared", 1)
 
                         # next puzzle button
                         elif buttons[3].rect.collidepoint(pygame.mouse.get_pos()) and buttons[3].Enable:
                             # load a new random puzzle
-                            newIndex = random.randint(1, 100)
-                            while newIndex == currentPuzzleIndex:
-                                newIndex = random.randint(1, 100)
-                            currentPuzzleIndex = newIndex
-                            puzzle = buttons[3].getPuzzle(currentPuzzleIndex)
+                            new_index = random.randint(1, 100)
+                            while new_index == current_puzzle_index:
+                                new_index = random.randint(1, 100)
+                            current_puzzle_index = new_index
+                            puzzle = buttons[3].get_puzzle(current_puzzle_index)
                             
                             # create a new board with the new puzzle
                             board = Board(puzzle, win)
 
                             # reset the timer
                             timer = 0
-                            renderString = "00:00"
-                            timerStart = time.time()
+                            render_string = "00:00"
+                            timer_start = time.time()
                             buttons[2].Enable = True # enable the reset button
                         
                         # hint button
                         elif buttons[4].rect.collidepoint(pygame.mouse.get_pos()):
                             # if that button is enabled and he selected a place 
                             if buttons[4].Enable:
-                                if board.selectedCell is not None:
+                                if board.selected_cell is not None:
                                     # then subtract the hints variable by 1
                                     # and get the right number from board.solvedPuzzle list
                                     hints -= 1
                                     if hints <= 0:
                                         buttons[4].Enable = False
-                                    r, c = board.positionOfSelectedCell
-                                    board.puzzle[r][c] = board.solvedPuzzle[r][c]
-                                    board.refreshCells()
+                                    r, c = board.position_of_selected_cell
+                                    board.puzzle[r][c] = board.solved_puzzle[r][c]
+                                    board.refresh_cells()
                                 else:
-                                    notification.invokeNotification("Select a cell", 2)
+                                    notification.invoke_notification("Select a cell", 2)
                             else:
-                                notification.invokeNotification("You are out of hints", 2)
+                                notification.invoke_notification("You are out of hints", 2)
                 
                 # change volume using mouse wheel
                 elif event.button == 4:
@@ -582,46 +581,46 @@ def main():
                 # and that key is a num-pad key and the selected cell
                 # is empty, then assign the number he pressed to that cell
                 if pygame.K_KP1 <= event.key <= pygame.K_KP9:
-                    if board.positionOfSelectedCell != ():
-                        r, c = board.positionOfSelectedCell
+                    if board.position_of_selected_cell != ():
+                        r, c = board.position_of_selected_cell
                         if board.cells[r][c].empty:
                             board.puzzle[r][c] = event.key + 1 - pygame.K_KP1
-                            board.refreshCells()
+                            board.refresh_cells()
                 
                 # else if that key was an arrow key
                 # then navigate in the cells by making the selected cell be
                 # whatever the user selected with the arrows
                 elif pygame.K_UP >= event.key >= pygame.K_RIGHT:
-                    if board.selectedCell is not None:
+                    if board.selected_cell is not None:
                         if event.key == pygame.K_UP:
-                            new_row = (board.positionOfSelectedCell[0] - 1) % 9
-                            new_column = board.positionOfSelectedCell[1]
+                            new_row = (board.position_of_selected_cell[0] - 1) % 9
+                            new_column = board.position_of_selected_cell[1]
                         elif event.key == pygame.K_DOWN:
-                            new_row = (board.positionOfSelectedCell[0] + 1) % 9
-                            new_column = board.positionOfSelectedCell[1]
+                            new_row = (board.position_of_selected_cell[0] + 1) % 9
+                            new_column = board.position_of_selected_cell[1]
                         elif event.key == pygame.K_LEFT:
-                            new_row = board.positionOfSelectedCell[0]
-                            new_column = (board.positionOfSelectedCell[1] - 1 ) % 9
+                            new_row = board.position_of_selected_cell[0]
+                            new_column = (board.position_of_selected_cell[1] - 1 ) % 9
                         else:
-                            new_row = board.positionOfSelectedCell[0]
-                            new_column = (board.positionOfSelectedCell[1] + 1 ) % 9
+                            new_row = board.position_of_selected_cell[0]
+                            new_column = (board.position_of_selected_cell[1] + 1 ) % 9
                         if board.cells[new_row][new_column].empty:
-                            board.selectCell(new_row, new_column)
+                            board.select_cell(new_row, new_column)
 
                 # get the next empty cell by pressing tab
                 elif pygame.K_TAB == event.key:
-                    if board.selectedCell is not None:
-                        r, c = board.getNextEmptyCell()
+                    if board.selected_cell is not None:
+                        r, c = board.next_empty_cell()
                         if r != -1:
-                            board.selectCell(r, c)
+                            board.select_cell(r, c)
                         
         # change the color of any button if the mouse is hovering over it
         if pygame.mouse.get_pos() > (540, 0):
             for button in buttons:
                 if button.rect.collidepoint(pygame.mouse.get_pos()):
-                    button.onMouseEnter()
+                    button.on_mouse_enter()
                 else:
-                    button.onMouseExit()
+                    button.on_mouse_exit()
                     
         # fill the screen with black to end the previous frame
         win.fill(BACKGROUND_COLOR)
@@ -631,14 +630,14 @@ def main():
         # drawing cells
         for rowOfCells in board.cells:
             for cell in rowOfCells:
-                cell.drawRect()
-                cell.drawText(game_font)
+                cell.draw_rect()
+                cell.draw_text(game_font)
         
         # drawing buttons and their texts
         game_font.size = 20
         for button in buttons:
-            button.drawRect()
-            button.drawText(game_font)
+            button.draw_rect()
+            button.draw_text(game_font)
         
         # instruction to the user
         game_font.render_to(win, (15, 500), "Select a square and enter a number", (255, 255, 255))
@@ -647,15 +646,15 @@ def main():
         game_font.render_to(win, (420, 580), "Music volume can be changed using mouse wheel", (255, 255, 255))
         game_font.size = 20
         # show the notification for 2 seconds only
-        notification.drawNotification(win, game_font)
+        notification.draw(win, game_font)
 
         #drawing timer text
         timerEnd = time.time()
-        if timerEnd - timerStart >= 1 and board.solved == False:
+        if timerEnd - timer_start >= 1 and board.solved == False:
             timer += 1
-            renderString = getTimeInString(timer)
-            timerStart = time.time()
-        game_font.render_to(win, (435, 500), renderString, (255, 255, 255))
+            render_string = get_time(timer)
+            timer_start = time.time()
+        game_font.render_to(win, (435, 500), render_string, (255, 255, 255))
 
         #drawing hints text
         game_font.render_to(win, (435, 530), f"hints: {hints}", (255, 255, 255))

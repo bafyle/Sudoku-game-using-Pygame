@@ -62,7 +62,7 @@ use this link: https://www.kaggle.com/bryanpark/sudoku and extract the zip file 
 import pandas as pd
 import sqlite3 as sql
 
-puzzlesNumber = 100
+puzzles_number = 100
 ...
 ~~~
 
