@@ -3,8 +3,8 @@ import sqlite3 as sql
 
 puzzles_number = 100 # we want to get first 100 puzzle
 
-# connect to the database
-connection = sql.connect("puzzles.db")
+# create or create to the database
+connection = sql.connect("../puzzles.db")
 cur = connection.cursor()
 
 # create the database schema
