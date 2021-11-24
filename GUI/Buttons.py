@@ -41,23 +41,6 @@ class ShowAnswerButton(Button):
 class CheckValidButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
-    
-    # def is_puzzle_valid(self, puzzle: list) -> bool:
-    #     """
-    #     Return true if the puzzle is correct and false otherwise, by calling
-    #     the isThereOnce method in the Solver Class.
-    #     the puzzle may have more that one solution, by checking if every number is
-    #     not repeated more than once in its row, column and 3x3 square, we make sure that
-    #     this answer is correct rather than checking if the puzzle is equal to the solved puzzle
-    #     from the algorithm
-    #     """
-    #     if self.Enable:
-    #         self.solver = Solver(puzzle)
-    #         for i in range(9):
-    #             for f in range(9):
-    #                 if puzzle[i][f] == 0 or not self.solver.is_there_once((i, f), puzzle[i][f]):
-    #                     return False
-    #         return True
 
 class ResetPuzzleButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
@@ -72,27 +55,3 @@ class HintButton(Button):
 class GetAnotherPuzzleButton(Button):
     def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
         super().__init__(text, attributes, win)
-        
-        # create instance of database class with the path to the database
-    #     self.database_connection = Database("puzzles.db")
-
-    
-    # def get_puzzle(self, puzzle_index: int) -> list:
-    #     """Get the text puzzle from the database adn convert it to a list"""
-    #     if self.Enable:
-
-    #         # get the puzzle from the database as string
-    #         puzzle_text = self.database_connection.get_puzzle_string(puzzle_index)
-
-    #         # convert that string to a list of list of integers
-    #         new_puzzle = list()
-    #         inner_list = list()
-    #         for index, char in enumerate(puzzle_text):
-    #             if index % 9 == 0 and index != 0:
-    #                 new_puzzle.append(inner_list)
-    #                 inner_list = list()
-    #             inner_list.append(int(char))
-    #         new_puzzle.append(inner_list)
-
-    #         # return the new puzzle
-    #         return new_puzzle
