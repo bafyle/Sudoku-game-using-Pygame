@@ -3,6 +3,8 @@ import time
 import random
 import copy
 import sys
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 try:
     # importing pygame library
     import pygame.freetype
@@ -16,11 +18,11 @@ try:
     from puzzle_solver.solver import Solver
 
 except ImportError as error: # catch any import issues
-    print("pygame is not installed, open command prompt or the terminal "
-          "and install the pygame library from 'pip3 install pygame' or 'pip install pygame' "
-          "and try again.\n"
-          "And make sure 'puzzle_solver', 'database', 'sounds' and 'fonts' folders "
-          "are in the same directory with 'sudoku.py' file (this file).")
+    print(
+        "One of the modules or libraries are missing, Please check if Pygame is installed on the current environment, "
+        "and check if the current directory has the following: 'database/' 'fonts/' 'GUI/' 'puzzle_solver/' 'sounds/' and 'puzzles.db'"
+        )
+    print(error)
     sys.exit(1)
     
 
