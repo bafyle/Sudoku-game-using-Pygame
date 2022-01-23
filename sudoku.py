@@ -87,10 +87,7 @@ class Game:
 
     
     def get_next_puzzle_action(self):
-        new_index = random.randint(1, 100)
-        while new_index == self.current_puzzle_index:
-            new_index = random.randint(1, 100)
-        self.current_puzzle_index = new_index
+        self.current_puzzle_index = ((self.current_puzzle_index + 1) % 101) + 1
         self.puzzle = self.get_new_puzzle()
 
         # create a new board with the new puzzle
@@ -174,8 +171,8 @@ class Game:
 
     def game_main_loop(self):
         while self.game_running:
-            self.clock.tick()
-
+            self.clock.tick(60)
+            
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     # if the user closed the window then break the loop and close
