@@ -2,6 +2,7 @@ import copy
 from .Cell import *
 from puzzle_solver.solver import Solver
 
+
 class Board:
     """
     This class is for managing the board: add a number to the puzzle , solve the puzzle, etc...

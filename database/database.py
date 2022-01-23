@@ -22,19 +22,20 @@ class Database:
         This function reads a puzzle from the database and returns 
         it in string foramt
         """
-        # get the puzzle that has 'id' index
-        # 'execute()' function returns an iterable object that 
-        # contains the output of the select statement 
+        # get the puzzle which its q_id equal to id
         puzzle_text = self.cursor.execute("SELECT quiz FROM Quizzes WHERE q_id = ?", [id])
 
         # since the q_id is a primary key in the database,
         # there will be only one object in 'puzzleText'
         # we get that object and reassign 'puzzleText' with it
-        for i in puzzle_text:
-            puzzle_text = i
-        puzzle_text = puzzle_text[0]
+        # for i in puzzle_text:
+        #     puzzle_text = i
+        # puzzle_text = puzzle_text[0]
+
+        for row in puzzle_text:
+            return row[0]
         
-        return puzzle_text
+        # return puzzle_text
     
     def get_answer_string(self, id: int) -> str:
         """

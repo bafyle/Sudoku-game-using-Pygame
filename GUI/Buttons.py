@@ -1,4 +1,6 @@
 from .Rectangle import *
+
+
 class Button(Rectangle):
     """
     A Button class is like the cell class but it has a text in the middle
