@@ -21,10 +21,13 @@ class PuzzleSolverTest(unittest.TestCase):
         answers_query = cursor.execute("SELECT answer from Answers;")
         for puzzle in answers_query:
             puzzles_from_db.append(self._convert_puzzle_string_to_list(puzzle[0]))
-        
         connector.close()
-        self.assertEqual(puzzles_from_db, solved_puzzles)
 
+        
+        for index, puzzle in enumerate(solved_puzzles):
+            for row_index in range(len(puzzle)):
+                self.assertListEqual(puzzle[row_index], solved_puzzles[index][row_index])
+        
         
     def _convert_puzzle_string_to_list(self, puzzle_text):
         new_puzzle = list()
