@@ -3,7 +3,6 @@ import sqlite3 as sql
 
 puzzles_number = 100 # first 100 puzzle
 
-# create a database or connect to existing one
 connection = sql.connect("../puzzles.db")
 cur = connection.cursor()
 

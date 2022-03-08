@@ -2,7 +2,6 @@ import copy
 from .Cell import *
 from puzzle_solver.solver import Solver
 
-
 class Board:
     """
     This class is for managing the board: add a number to the puzzle , solve the puzzle, etc...
@@ -13,11 +12,11 @@ class Board:
         """
         since python is not using calling by reference nor calling by value,
         OriginalPuzzle must be a new variable that has the same values as puzzle
-        but it is not the same instance of puzzle
+        but it is not the same instance of puzzle.
         print(self.OriginalPuzzle is puzzle) should output False
 
         using 'self.OriginalPuzzle = puzzle' will affect the OriginalPuzzle variable
-        if we modified the puzzle variable and we don't want that
+        if we modified 'puzzle' variable and we don't want that
         """
         self.cells = []
         self.solved = False
@@ -40,7 +39,6 @@ class Board:
             x = 0
             self.cells.append(innerList)
         
-        # solve the puzzle and store it in a new variable using deepcopy
         self.solved_puzzle = copy.deepcopy(self.original_puzzle)
         solver = Solver(self.solved_puzzle)
         solver.solve_in_place()

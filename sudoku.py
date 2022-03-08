@@ -1,19 +1,14 @@
-# importing necessary libraries
 import time
 import random
 import copy
 import sys
 import os
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+
 try:
-    # importing pygame library
     import pygame.freetype
-
-    # import the Solver class from puzzle_solver module file
-
-    # import Database class from database module
     from database.database import Database
-
     from GUI import Buttons, Notification, Board
     from puzzle_solver.solver import Solver
 
@@ -60,7 +55,7 @@ class Game:
         self.timer = 0
 
         pygame.mixer.music.load("./sounds/background.mp3")
-        pygame.mixer.music.play(-1) # infinite loop, play the music again after it finishes
+        pygame.mixer.music.play(-1) # repeat forever
         pygame.mixer.music.set_volume(0.3)
 
         self.game_running = True
@@ -72,7 +67,7 @@ class Game:
         """
         puzzle_text = self.database_connection.get_puzzle_string(self.current_puzzle_index)
 
-        # convert that string to a list of list of integers
+        # convert that string to a 2D list of integers
         new_puzzle = list()
         inner_list = list()
         for index, char in enumerate(puzzle_text):
@@ -82,18 +77,16 @@ class Game:
             inner_list.append(int(char))
         new_puzzle.append(inner_list)
 
-        # return the new puzzle
         return new_puzzle
 
     
     def get_next_puzzle_action(self):
+        """
+        This function is executed when the player presses the next puzzle button
+        """
         self.current_puzzle_index = ((self.current_puzzle_index + 1) % 101) + 1
         self.puzzle = self.get_new_puzzle()
-
-        # create a new board with the new puzzle
         self.board = Board.Board(self.puzzle, self.win)
-
-        # reset the timer
         self.reset_game_timer()
         self.buttons_list[2].Enable = True # enable the reset button
     
@@ -102,12 +95,7 @@ class Game:
 
     def check_valid_puzzle_action(self):
         """
-        Return true if the puzzle is correct and false otherwise, by calling
-        the isThereOnce method in the Solver Class.
-        the puzzle may have more that one solution, by checking if every number is
-        not repeated more than once in its row, column and 3x3 square, we make sure that
-        this answer is correct rather than checking if the puzzle is equal to the solved puzzle
-        from the algorithm
+        Return true if the puzzle is correct and false otherwise
         """
         solver = Solver(self.puzzle)
         for i in range(9):
@@ -122,13 +110,19 @@ class Game:
         self.timer = 0
     
     def show_answer_action(self):
+        """
+        Action function for the show answer button
+        """
         self.board.puzzle = copy.deepcopy(self.board.solved_puzzle)
         self.puzzle = self.board.puzzle
         self.board.refresh_cells()
-        self.buttons_list[2].Enable = False
+        self.buttons_list[2].Enable = False # disable the reset button
         self.board.solved = True
     
     def hint_action(self):
+        """
+        Action function for the hint button
+        """
         if self.buttons_list[4].Enable:
             if self.board.selected_cell is not None:
                 self.hints -= 1
@@ -150,8 +144,7 @@ class Game:
     
     def get_time(self) -> str:
         """ 
-        this function takes a number of seconds and convert it
-        mm:ss format.
+        Convert time from seconds to minutes and seconds format e.g: 1574 = 26:14
         """
         seconds = self.timer
         minutes = seconds // 60
@@ -175,14 +168,12 @@ class Game:
             
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    # if the user closed the window then break the loop and close
-                    # the database connection
                     self.close_database()
                     self.game_running = False
 
                 # if the user clicked while the mouse is near the puzzle cells
                 # then search for the cell that he selected
-                # and store its row and column number
+                # and save its row and column number
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         if pygame.mouse.get_pos() > (14, 14) and pygame.mouse.get_pos() <= (484, 484):
@@ -190,41 +181,33 @@ class Game:
                                 breakPoint = False
                                 for j, cell in enumerate(row):
                                     if cell.rect.collidepoint(pygame.mouse.get_pos()) and cell.empty:
-                                        # if the mouse was clicked when clicking the mouse was colliding 
-                                        # with any of the cells, then select that cell
                                         self.board.select_cell(i, j)
                                         breakPoint = True
                                         break
                                 if breakPoint:
                                     break
 
-                        # if the user clicked in the area of of buttons
-                        # call 'onClicked' method of the clicked button
+                        # if the user clicked in buttons area
+                        # execute the action function of the pressed button
                         elif pygame.mouse.get_pos() > (540, 0):
-                            # check valid button
                             if self.buttons_list[0].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[0].Enable:
                                 valid_puzzle = self.check_valid_puzzle_action()
 
-                                # notify the user if the puzzle is valid or not
                                 if valid_puzzle:
                                     self.board.solved = True
                                     self.notification.invoke_notification("Your answer is correct!!", 0)
                                 else:
                                     self.notification.invoke_notification("Think again", 0)
                                 
-                            # show answer button
                             elif self.buttons_list[1].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[1].Enable:
                                 self.show_answer_action()
 
-                            # reset button
                             elif self.buttons_list[2].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[2].Enable:
                                 self.reset_board()
 
-                            # next puzzle button
                             elif self.buttons_list[3].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[3].Enable:
                                 self.get_next_puzzle_action()
                             
-                            # hint button
                             elif self.buttons_list[4].rect.collidepoint(pygame.mouse.get_pos()):
                                 self.hint_action()
                     
@@ -238,10 +221,8 @@ class Game:
                         else:
                             pygame.mixer.music.set_volume(pygame.mixer.music.get_volume() - 0.1)
 
-                # if the user pressed a key on the keyboard
                 elif event.type == pygame.KEYDOWN:
-                    # and that key is a num-pad key and the selected cell
-                    # is empty, then assign the number he pressed to that cell
+                    # inserting a number from the num-pad to an empty cell
                     if pygame.K_KP1 <= event.key <= pygame.K_KP9:
                         if self.board.position_of_selected_cell != ():
                             r, c = self.board.position_of_selected_cell
@@ -249,9 +230,7 @@ class Game:
                                 self.board.puzzle[r][c] = event.key + 1 - pygame.K_KP1
                                 self.board.refresh_cells()
                     
-                    # else if that key was an arrow key
-                    # then navigate in the cells by making the selected cell be
-                    # whatever the user selected with the arrows
+                    # navigate the board using arrows keys
                     elif pygame.K_UP >= event.key >= pygame.K_RIGHT:
                         if self.board.selected_cell is not None:
                             if event.key == pygame.K_UP:
@@ -269,12 +248,13 @@ class Game:
                             if self.board.cells[new_row][new_column].empty:
                                 self.board.select_cell(new_row, new_column)
 
-                    # get the next empty cell by pressing tab
+                    # go to the next empty cell using tab
                     elif pygame.K_TAB == event.key:
                         if self.board.selected_cell is not None:
                             r, c = self.board.next_empty_cell()
                             if r != -1:
                                 self.board.select_cell(r, c)
+            
             # change the color of any button if the mouse is hovering over it
             if pygame.mouse.get_pos() > (540, 0):
                 for button in self.buttons_list:
@@ -282,34 +262,30 @@ class Game:
                         button.on_mouse_enter()
                     else:
                         button.on_mouse_exit()
-                        
-            # fill the screen with black to end the previous frame
-            self.win.fill(Game.BACKGROUND_COLOR)
+
+            self.win.fill(Game.BACKGROUND_COLOR) # black background
+
 
             #-------------drawing section-------------#
 
-            # drawing cells
             for rowOfCells in self.board.cells:
                 for cell in rowOfCells:
                     cell.draw_rect()
                     cell.draw_text(self.game_font)
             
-            # drawing buttons and their texts
             self.game_font.size = 20
             for button in self.buttons_list:
                 button.draw_rect()
                 button.draw_text(self.game_font)
             
-            # instruction to the user
             self.game_font.render_to(self.win, (15, 500), "Select a square and enter a number", (255, 255, 255))
             self.game_font.render_to(self.win, (15, 530), "You can use the arrow keys or tab to navigate", (255, 255, 255))
             self.game_font.size = 18
             self.game_font.render_to(self.win, (420, 580), "Music volume can be changed using mouse wheel", (255, 255, 255))
             self.game_font.size = 20
-            # show the notification for 2 seconds only
+
             self.notification.draw(self.win, self.game_font)
 
-            # drawing timer text
             timerEnd = time.time()
             if timerEnd - self.timer_start >= 1 and self.board.solved == False:
                 self.timer += 1
@@ -321,7 +297,6 @@ class Game:
             self.game_font.render_to(self.win, (15, 560), "Made with love <3 by Andrew", (255, 82, 113))
             self.game_font.size = 36
 
-            # update the screen
             pygame.display.flip()
 
         sys.exit(0)
