@@ -84,7 +84,7 @@ class Game:
         """
         This function is executed when the player presses the next puzzle button
         """
-        self.current_puzzle_index = ((self.current_puzzle_index + 1) % 101) + 1
+        self.current_puzzle_index = ((self.current_puzzle_index) % 100) + 1
         self.puzzle = self.get_new_puzzle()
         self.board = Board.Board(self.puzzle, self.win)
         self.reset_game_timer()
@@ -97,10 +97,9 @@ class Game:
         """
         Return true if the puzzle is correct and false otherwise
         """
-        solver = Solver(self.puzzle)
         for i in range(9):
             for f in range(9):
-                if self.puzzle[i][f] == 0 or not solver.is_there_once((i, f), self.puzzle[i][f]):
+                if self.puzzle[i][f] == 0 or not Solver.is_there_once((i, f), self.puzzle[i][f], self.puzzle):
                     return False
         return True
 
