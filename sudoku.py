@@ -40,7 +40,7 @@ class Game:
         ]
         self.database_connection = Database("./puzzles.db")
         self.current_puzzle_index = random.randint(1, 100)
-        self.puzzle = self.get_new_puzzle()
+        self.puzzle = self.get_new_puzzle_from_db_as_list()
 
         self.board = Board.Board(self.puzzle, self.win)
         self.hints = 3
@@ -61,7 +61,7 @@ class Game:
         self.game_running = True
         self.clock = pygame.time.Clock()
 
-    def get_new_puzzle(self) -> list:
+    def get_new_puzzle_from_db_as_list(self) -> list:
         """
         This function converts a puzzle that is brought from the db to a list
         """
@@ -85,7 +85,7 @@ class Game:
         This function is executed when the player presses the next puzzle button
         """
         self.current_puzzle_index = ((self.current_puzzle_index) % 100) + 1
-        self.puzzle = self.get_new_puzzle()
+        self.puzzle = self.get_new_puzzle_from_db_as_list()
         self.board = Board.Board(self.puzzle, self.win)
         self.reset_game_timer()
         self.buttons_list[2].Enable = True # enable the reset button
