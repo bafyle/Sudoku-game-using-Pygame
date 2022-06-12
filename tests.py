@@ -2,6 +2,8 @@ import unittest
 from puzzle_solver.solver import Solver
 import sqlite3 as sql
 
+import numpy
+
 class PuzzleSolverTest(unittest.TestCase):
     def test_puzzle_solver(self):
 
@@ -15,7 +17,8 @@ class PuzzleSolverTest(unittest.TestCase):
         for puzzle in puzzles_query:
             unsolved_puzzles = self._convert_puzzle_string_to_list(puzzle[0])
             solver = Solver(unsolved_puzzles)
-            solved_puzzle, _ = solver.solve_out_place()
+            solver.solve_in_place()
+            solved_puzzle = solver.puzzle
             solved_puzzles.append(solved_puzzle)
         
         answers_query = cursor.execute("SELECT answer from Answers;")
@@ -23,10 +26,9 @@ class PuzzleSolverTest(unittest.TestCase):
             puzzles_from_db.append(self._convert_puzzle_string_to_list(puzzle[0]))
         connector.close()
 
-        
         for index, puzzle in enumerate(solved_puzzles):
             for row_index in range(len(puzzle)):
-                self.assertListEqual(puzzle[row_index], solved_puzzles[index][row_index])
+                self.assertListEqual(puzzles_from_db[index][row_index], solved_puzzles[index][row_index])
         
         
     def _convert_puzzle_string_to_list(self, puzzle_text):
