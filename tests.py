@@ -2,8 +2,6 @@ import unittest
 from puzzle_solver.solver import Solver
 import sqlite3 as sql
 
-import numpy
-
 class PuzzleSolverTest(unittest.TestCase):
     def test_puzzle_solver(self):
 
