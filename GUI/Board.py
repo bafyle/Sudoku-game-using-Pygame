@@ -68,7 +68,7 @@ class Board:
             self.selected_cell.toggle_selection()
             self.position_of_selected_cell = (row, col)
     
-    def next_empty_cell(self) -> tuple:
+    def get_next_empty_cell(self) -> tuple:
         """
         This method returns the position (row, column) of
         the next editable cell in tuple

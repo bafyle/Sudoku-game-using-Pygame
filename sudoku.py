@@ -82,13 +82,12 @@ class Game:
     
     def get_next_puzzle_action(self):
         """
-        This function is executed when the player presses the next puzzle button
+        Updates the puzzle ID and gets new puzzle from the database
         """
         self.current_puzzle_index = ((self.current_puzzle_index) % 100) + 1
         self.puzzle = self.get_new_puzzle_from_db_as_list()
         self.board = Board.Board(self.puzzle, self.win)
-        self.reset_game_timer()
-        self.buttons_list[2].Enable = True # enable the reset button
+        
     
     def close_database(self) -> None:
         Database.close_connection()
@@ -104,9 +103,10 @@ class Game:
         return True
 
     def reset_game_timer(self) -> None:
-        self.timer_start = time.time()
+        
         self.timer_render_string = "00:00"
         self.timer = 0
+        self.timer_start = time.time()
     
     def show_answer_action(self):
         """
@@ -115,7 +115,6 @@ class Game:
         self.board.puzzle = copy.deepcopy(self.board.solved_puzzle)
         self.puzzle = self.board.puzzle
         self.board.refresh_cells()
-        self.buttons_list[2].Enable = False # disable the reset button
         self.board.solved = True
     
     def hint_action(self):
@@ -136,6 +135,10 @@ class Game:
             self.notification.invoke_notification("You are out of hints", 2)
     
     def reset_board(self):
+        """
+        Clear all guessed numbers from the players, unselect the current bard cell and show a notification
+        to the player that the board is cleared.
+        """
         self.board.puzzle = copy.deepcopy(self.board.original_puzzle)
         self.board.refresh_cells()
         self.board.clear_selection()
@@ -143,7 +146,7 @@ class Game:
     
     def get_time(self) -> str:
         """ 
-        Convert time from seconds to minutes and seconds format e.g: 1574 = 26:14
+        Convert time from seconds to minutes and seconds format e.g: 1574 seconds -> 26:14
         """
         seconds = self.timer
         minutes = seconds // 60
@@ -200,12 +203,15 @@ class Game:
                                 
                             elif self.buttons_list[1].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[1].Enable:
                                 self.show_answer_action()
+                                self.buttons_list[2].Enable = False # disable the reset button
 
                             elif self.buttons_list[2].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[2].Enable:
                                 self.reset_board()
 
                             elif self.buttons_list[3].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[3].Enable:
                                 self.get_next_puzzle_action()
+                                self.reset_game_timer()
+                                self.buttons_list[2].Enable = True # enable the reset button
                             
                             elif self.buttons_list[4].rect.collidepoint(pygame.mouse.get_pos()):
                                 self.hint_action()
@@ -250,7 +256,7 @@ class Game:
                     # go to the next empty cell using tab
                     elif pygame.K_TAB == event.key:
                         if self.board.selected_cell is not None:
-                            r, c = self.board.next_empty_cell()
+                            r, c = self.board.get_next_empty_cell()
                             if r != -1:
                                 self.board.select_cell(r, c)
             
