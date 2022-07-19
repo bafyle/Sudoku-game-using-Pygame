@@ -11,18 +11,25 @@ class Board:
         self.original_puzzle = copy.deepcopy(puzzle)
         """
         since python is not using calling by reference nor calling by value,
-        OriginalPuzzle must be a new variable that has the same values as puzzle
+        original_puzzle must be a new variable that has the same values as puzzle
         but it is not the same instance of puzzle.
-        print(self.OriginalPuzzle is puzzle) should output False
+        print(self.original_puzzle is puzzle) should output False
 
-        using 'self.OriginalPuzzle = puzzle' will affect the OriginalPuzzle variable
-        if we modified 'puzzle' variable and we don't want that
+        using 'self.original_puzzle = puzzle' will affect the original_puzzle
+        if we modified 'puzzle' and we don't want that
         """
         self.cells = []
         self.solved = False
         self.selected_cell = None
         self.position_of_selected_cell = (-1, -1)
         self.index_of_selected_cell = -1
+        
+        self._prepare_board(win)
+        self.solved_puzzle = copy.deepcopy(self.original_puzzle)
+        solver = Solver(self.solved_puzzle)
+        solver.solve_in_place()
+    
+    def _prepare_board(self, win: pygame.Surface):
         x = 0
         y = 0
         for i in range(9):
@@ -38,11 +45,7 @@ class Board:
             y += 51
             x = 0
             self.cells.append(innerList)
-        
-        self.solved_puzzle = copy.deepcopy(self.original_puzzle)
-        solver = Solver(self.solved_puzzle)
-        solver.solve_in_place()
-    
+
     def refresh_cells(self) -> list:
         """insert the numbers of the puzzle to the cells and return the new cells"""
         for i in range(9):
