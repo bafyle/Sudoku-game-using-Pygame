@@ -3,14 +3,14 @@ import sqlite3 as sql
 
 puzzles_number = 100 # first 100 puzzle
 
-connection = sql.connect("../puzzles.db")
+connection = sql.connect("puzzles.db")
 cur = connection.cursor()
 
 # create the database schema
-with open("Table Creation.sql", 'r') as f:
+with open("database/Table Creation.sql", 'r') as f:
     cur.executescript(f.read())
 
-data = pd.read_csv("./sudoku.csv")
+data = pd.read_csv("database/sudoku.csv")
 
 for i in range(puzzles_number):
     """
