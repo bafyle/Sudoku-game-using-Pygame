@@ -32,11 +32,11 @@ class Game:
         self.win = pygame.display.set_mode(self.resolution)
         self.game_font = pygame.freetype.Font("fonts/BRLNSR.ttf", 36)
         self.buttons_list = [
-            Buttons.CheckValidButton("Check your answer", (550, 50, 200, 30), self.win),
-            Buttons.ShowAnswerButton("Show answer", (550, 150, 200, 30), self.win),
-            Buttons.ResetPuzzleButton("Clear", (550, 250, 200, 30), self.win),
-            Buttons.GetAnotherPuzzleButton("Next puzzle", (550, 450, 200, 30), self.win),
-            Buttons.HintButton("Hint", (550, 350, 200, 30), self.win),
+            Buttons.Button("Check your answer", (550, 50, 200, 30), self.win),
+            Buttons.Button("Show answer", (550, 150, 200, 30), self.win),
+            Buttons.Button("Clear", (550, 250, 200, 30), self.win),
+            Buttons.Button("Next puzzle", (550, 450, 200, 30), self.win),
+            Buttons.Button("Hint", (550, 350, 200, 30), self.win),
         ]
         self.database_connection = Database("./puzzles.db")
         self.current_puzzle_index = random.randint(1, 100)

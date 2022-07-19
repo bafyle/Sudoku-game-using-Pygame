@@ -33,24 +33,3 @@ class Button(Rectangle):
             self.color = Button.NORMAL_COLOR
 
     MOUSE_ON_COLOR = (190, 215, 255)
-
-
-class ShowAnswerButton(Button):
-    def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
-        super().__init__(text, attributes, win)
-
-class CheckValidButton(Button):
-    def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
-        super().__init__(text, attributes, win)
-
-class ResetPuzzleButton(Button):
-    def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
-        super().__init__(text, attributes, win)
-
-class HintButton(Button):
-    def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
-        super().__init__(text, attributes, win)
-
-class GetAnotherPuzzleButton(Button):
-    def __init__(self, text: str, attributes: tuple, win: pygame.Surface):
-        super().__init__(text, attributes, win)
