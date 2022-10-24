@@ -18,14 +18,15 @@ class Cell(Rectangle):
         """
         self.selected = not self.selected
         if not self.selected:
-            self.color = super().NORMAL_COLOR
+            self.color = RectangleColor.NORMAL_COLOR.value
         else:
-            self.color = super().SELECTED_COLOR
+            self.color = RectangleColor.SELECTED_COLOR.value
     
-    def draw_text(self, game_font: pygame.freetype.Font) -> None:
+    def draw(self, game_font: pygame.freetype.Font) -> None:
         """
         Drawing the cell text to the window, which is a single digit number 
         """
+        super()._draw_rect()
         if not self.empty:
             game_font.render_to(self.win, (self.attributes[0]+18, self.attributes[1]+16),
                                 str(self.number), (0, 0, 0))

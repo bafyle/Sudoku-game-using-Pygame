@@ -1,16 +1,19 @@
 import time
+import logging
 class Notification:
 
     """
     Class Notification is for informing the player about any information
     """
-    def __init__(self):
+    DISPLAY_TIME = 2
+
+    def __init__(self, color: tuple = (255, 255, 255)):
         self.message = ""
         self.timer = time.time()
         self.positions = list()
         self.invoked = False
         self.currentPosition = tuple()
-        self.displayTime = 2
+        self.color = color
     
     def add_position(self, newPoisition: tuple) -> None:
         """
@@ -23,16 +26,19 @@ class Notification:
         if i < len(self.positions):
             self.currentPosition = self.positions[i]
         else:
-            print(f"index out of range")
+            logging.warning(f"position index out of range")
             return
         self.message = message
         self.timer = time.time()
         self.invoked = True
 
+    def kill_notification(self):
+        self.invoked = False
+    
     def draw(self, win, game_font) -> None:
         if self.invoked:
-            game_font.render_to(win, self.currentPosition, self.message, (255, 255, 255))
+            game_font.render_to(win, self.currentPosition, self.message, self.color)
             notificationEndTime = time.time()
-            if notificationEndTime - self.timer >= self.displayTime:
+            if notificationEndTime - self.timer >= Notification.DISPLAY_TIME:
                 self.invoked = False
         

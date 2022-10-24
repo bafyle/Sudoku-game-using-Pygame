@@ -10,7 +10,8 @@ class Button(Rectangle):
         super().__init__(attributes, win)
         self.text = text
     
-    def draw_text(self, game_font: pygame.freetype.Font):
+    def draw(self, game_font: pygame.freetype.Font):
+        super()._draw_rect()
         padding = self.attributes[2] // 2
         padding -= len(self.text) * 4.5
 
@@ -22,7 +23,7 @@ class Button(Rectangle):
         change the color of the cell if the mouse is hovering on the button
         """
         if self.Enable:
-            self.color = Button.MOUSE_ON_COLOR
+            self.color = RectangleColor.MOUSE_ON_COLOR.value
     
 
     def on_mouse_exit(self):
@@ -30,6 +31,6 @@ class Button(Rectangle):
         Change the color back of the cell if the mouse was hovering on the button and leaved
         """
         if self.Enable:
-            self.color = Button.NORMAL_COLOR
+            self.color = RectangleColor.NORMAL_COLOR.value
 
-    MOUSE_ON_COLOR = (190, 215, 255)
+    

@@ -143,7 +143,11 @@ class Game:
         self.board.refresh_cells()
         self.board.clear_selection()
         self.notification.invoke_notification("Board cleared", 1)
-    
+
+    def reset_hints(self):
+        self.hints = 3
+        self.buttons_list[4].Enable = True
+        
     def get_time(self) -> str:
         """ 
         Convert time from seconds to minutes and seconds format e.g: 1574 seconds -> 26:14
@@ -211,6 +215,8 @@ class Game:
                             elif self.buttons_list[3].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[3].Enable:
                                 self.get_next_puzzle_action()
                                 self.reset_game_timer()
+                                self.reset_hints()
+                                self.notification.kill_notification()
                                 self.buttons_list[2].Enable = True # enable the reset button
                             
                             elif self.buttons_list[4].rect.collidepoint(pygame.mouse.get_pos()):
@@ -275,18 +281,16 @@ class Game:
 
             for rowOfCells in self.board.cells:
                 for cell in rowOfCells:
-                    cell.draw_rect()
-                    cell.draw_text(self.game_font)
+                    cell.draw(self.game_font)
             
             self.game_font.size = 20
             for button in self.buttons_list:
-                button.draw_rect()
-                button.draw_text(self.game_font)
+                button.draw(self.game_font)
             
             self.game_font.render_to(self.win, (15, 500), "Select a square and enter a number", (255, 255, 255))
-            self.game_font.render_to(self.win, (15, 530), "You can use the arrow keys or tab to navigate", (255, 255, 255))
-            self.game_font.size = 18
-            self.game_font.render_to(self.win, (420, 580), "Music volume can be changed using mouse wheel", (255, 255, 255))
+            self.game_font.render_to(self.win, (15, 530), "You can use the arrow keys and tab to navigate", (255, 255, 255))
+            
+            self.game_font.render_to(self.win, (15, 560), "Music volume can be changed using mouse wheel", (255, 255, 255))
             self.game_font.size = 20
 
             self.notification.draw(self.win, self.game_font)
@@ -299,7 +303,7 @@ class Game:
             self.game_font.render_to(self.win, (435, 500), self.timer_render_string, (255, 255, 255))
 
             self.game_font.render_to(self.win, (435, 530), f"hints: {self.hints}", (255, 255, 255))
-            self.game_font.render_to(self.win, (15, 560), "Made with love <3 by Andrew", (255, 82, 113))
+            self.game_font.render_to(self.win, (545, 580), "Made with love <3 by Andrew", (255, 82, 113))
             self.game_font.size = 36
 
             pygame.display.flip()

@@ -16,7 +16,8 @@ class Board:
         print(self.original_puzzle is puzzle) should output False
 
         using 'self.original_puzzle = puzzle' will affect the original_puzzle
-        if we modified 'puzzle' and we don't want that
+        if we modified 'puzzle' and we don't want that, so we use deepcopy to copy all values of inner
+        lists to new inner lists and create new big list to store these new inner lists
         """
         self.cells = []
         self.solved = False
@@ -30,8 +31,7 @@ class Board:
         solver.solve_in_place()
     
     def _prepare_board(self, win: pygame.Surface):
-        x = 0
-        y = 0
+        x = y = 0
         for i in range(9):
             if i % 3 == 0:
                 y += 3
@@ -75,6 +75,7 @@ class Board:
         """
         This method returns the position (row, column) of
         the next editable cell in tuple
+        It is used when the tab button is pressed
         """
         r, c = self.position_of_selected_cell
         if r != -1:
