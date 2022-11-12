@@ -46,8 +46,8 @@ class Board:
             x = 0
             self.cells.append(innerList)
 
-    def refresh_cells(self) -> list:
-        """insert the numbers of the puzzle to the cells and return the new cells"""
+    def refresh_cells(self) -> None:
+        """Re-insert all numbers from the board to cells"""
         for i in range(9):
             for j in range(9):
                 number = self.puzzle[i][j]
