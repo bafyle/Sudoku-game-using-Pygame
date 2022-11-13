@@ -39,7 +39,8 @@ class Game:
             Buttons.Button("Hint", (550, 350, 200, 30), self.win),
         ]
         self.database_connection = Database("./puzzles.db")
-        self.current_puzzle_index = random.randint(1, 100)
+        self.number_of_puzzles = self.database_connection.get_number_of_puzzles()
+        self.current_puzzle_index = random.randint(1, self.number_of_puzzles-1)
         self.puzzle = self.get_new_puzzle_from_db_as_list()
 
         self.board = Board.Board(self.puzzle, self.win)
@@ -84,7 +85,7 @@ class Game:
         """
         Updates the puzzle ID and gets new puzzle from the database
         """
-        self.current_puzzle_index = ((self.current_puzzle_index) % 100) + 1
+        self.current_puzzle_index = ((self.current_puzzle_index) % self.number_of_puzzles) + 1
         self.puzzle = self.get_new_puzzle_from_db_as_list()
         self.board = Board.Board(self.puzzle, self.win)
         
