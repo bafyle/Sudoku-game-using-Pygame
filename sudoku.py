@@ -235,11 +235,14 @@ class Game:
 
                 elif event.type == pygame.KEYDOWN:
                     # inserting a number from the num-pad to an empty cell
-                    if pygame.K_KP1 <= event.key <= pygame.K_KP9:
+                    if pygame.K_KP0 <= event.key <= pygame.K_KP9 or pygame.K_0 <= event.key <= pygame.K_9:
                         if self.board.position_of_selected_cell != ():
                             r, c = self.board.position_of_selected_cell
                             if self.board.cells[r][c].empty:
-                                self.board.puzzle[r][c] = event.key + 1 - pygame.K_KP1
+                                if pygame.K_KP0 <= event.key <= pygame.K_KP9:
+                                    self.board.puzzle[r][c] = event.key + 1 - pygame.K_KP1
+                                elif pygame.K_0 <= event.key <= pygame.K_9:
+                                    self.board.puzzle[r][c] = event.key - pygame.K_0
                                 self.board.refresh_cells()
                     
                     # navigate the board using arrows keys
