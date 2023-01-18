@@ -15,12 +15,12 @@ class Notification:
         self.currentPosition = tuple()
         self.color = color
     
-    def add_position(self, newPoisition: tuple) -> None:
+    def add_position(self, new_position: tuple) -> None:
         """
         This method takes a tuple of 2 integers and store them
         to a list of position.
         """
-        self.positions.append(newPoisition)
+        self.positions.append(new_position)
 
     def invoke_notification(self, message: str, i: int) -> None:
         if i < len(self.positions):
@@ -36,9 +36,10 @@ class Notification:
         self.invoked = False
     
     def draw(self, win, game_font) -> None:
-        if self.invoked:
-            game_font.render_to(win, self.currentPosition, self.message, self.color)
-            notificationEndTime = time.time()
-            if notificationEndTime - self.timer >= Notification.DISPLAY_TIME:
-                self.invoked = False
+        if not self.invoked:
+            return
+        game_font.render_to(win, self.currentPosition, self.message, self.color)
+        notificationEndTime = time.time()
+        if notificationEndTime - self.timer >= Notification.DISPLAY_TIME:
+            self.invoked = False
         

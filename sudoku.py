@@ -24,6 +24,25 @@ except ImportError as error: # catch any import issues
 class Game:
     BACKGROUND_COLOR = (0, 0, 0)
 
+    def _check_answer_button_action(self):
+        valid_puzzle = self.check_valid_puzzle()
+        if valid_puzzle:
+            self.board.solved = True
+            self.notification.invoke_notification("Your answer is correct!!", 0)
+        else:
+            self.notification.invoke_notification("Think again", 0)
+    
+    def _show_answer_button_action(self):
+        self.show_answer()
+        self.buttons_list[2].Enable = False # disable the reset button
+    
+    def _next_puzzle_button_action(self):
+        self.get_next_puzzle_action()
+        self.reset_game_timer()
+        self.reset_hints()
+        self.notification.kill_notification()
+        self.buttons_list[2].Enable = True # enable the reset button
+        
     def __init__(self) -> None:
         pygame.init()
         pygame.display.set_caption("Sudoku")
@@ -32,11 +51,11 @@ class Game:
         self.win = pygame.display.set_mode(self.resolution)
         self.game_font = pygame.freetype.Font("fonts/BRLNSR.ttf", 36)
         self.buttons_list = [
-            Buttons.Button("Check your answer", (550, 50, 200, 30), self.win),
-            Buttons.Button("Show answer", (550, 150, 200, 30), self.win),
-            Buttons.Button("Clear board", (550, 250, 200, 30), self.win),
-            Buttons.Button("Next puzzle", (550, 450, 200, 30), self.win),
-            Buttons.Button("Hint", (550, 350, 200, 30), self.win),
+            Buttons.Button("Check your answer", (550, 50, 200, 30), self.win, self._check_answer_button_action, {}),
+            Buttons.Button("Show answer", (550, 150, 200, 30), self.win, self._show_answer_button_action, {}),
+            Buttons.Button("Clear board", (550, 250, 200, 30), self.win, self.reset_board, {}),
+            Buttons.Button("Next puzzle", (550, 450, 200, 30), self.win, self._next_puzzle_button_action, {}),
+            Buttons.Button("Hint", (550, 350, 200, 30), self.win, self._hint_button_action, {}),
         ]
         self.database_connection = Database("./puzzles.db")
         self.number_of_puzzles = self.database_connection.get_number_of_puzzles()
@@ -93,7 +112,7 @@ class Game:
     def close_database(self) -> None:
         Database.close_connection()
 
-    def check_valid_puzzle_action(self):
+    def check_valid_puzzle(self):
         """
         Return true if the puzzle is correct and false otherwise
         """
@@ -109,16 +128,13 @@ class Game:
         self.timer = 0
         self.timer_start = time.time()
     
-    def show_answer_action(self):
-        """
-        Action function for the show answer button
-        """
+    def show_answer(self):
         self.board.puzzle = copy.deepcopy(self.board.solved_puzzle)
         self.puzzle = self.board.puzzle
         self.board.refresh_cells()
         self.board.solved = True
     
-    def hint_action(self):
+    def _hint_button_action(self):
         """
         Action function for the hint button
         """
@@ -308,31 +324,9 @@ class Game:
                     return
     
     def _mouse_button_1_pressed_on_buttons(self, event):
-        if self.buttons_list[0].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[0].Enable:
-            valid_puzzle = self.check_valid_puzzle_action()
-            if valid_puzzle:
-                self.board.solved = True
-                self.notification.invoke_notification("Your answer is correct!!", 0)
-            else:
-                self.notification.invoke_notification("Think again", 0)
-            
-        elif self.buttons_list[1].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[1].Enable:
-            self.show_answer_action()
-            self.buttons_list[2].Enable = False # disable the reset button
-
-        elif self.buttons_list[2].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[2].Enable:
-            self.reset_board()
-
-        elif self.buttons_list[3].rect.collidepoint(pygame.mouse.get_pos()) and self.buttons_list[3].Enable:
-            self.get_next_puzzle_action()
-            self.reset_game_timer()
-            self.reset_hints()
-            self.notification.kill_notification()
-            self.buttons_list[2].Enable = True # enable the reset button
-        
-        elif self.buttons_list[4].rect.collidepoint(pygame.mouse.get_pos()):
-            self.hint_action()
-                    
+        for button in self.buttons_list:
+            if button.rect.collidepoint(pygame.mouse.get_pos()) and button.Enable:
+                button.execute_button_action()
 
 def main():
     game = Game()
