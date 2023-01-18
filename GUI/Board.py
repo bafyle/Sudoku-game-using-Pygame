@@ -53,7 +53,7 @@ class Board:
                 number = self.puzzle[i][j]
                 self.cells[i][j].number = number
     
-    def clear_selection(self) -> None:
+    def deselect_cell(self) -> None:
         """Deselect the selected cell and reset the selectedCell and indexOfSelectedCell variables"""
         if self.selected_cell is not None and self.selected_cell.selected:
             self.selected_cell.toggle_selection()
@@ -70,6 +70,7 @@ class Board:
             self.selected_cell = self.cells[row][col]
             self.selected_cell.toggle_selection()
             self.position_of_selected_cell = (row, col)
+        
     
     def get_next_empty_cell(self) -> tuple:
         """
